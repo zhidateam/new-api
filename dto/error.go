@@ -1,10 +1,12 @@
 package dto
 
 type OpenAIError struct {
-	Message string `json:"message"`
-	Type    string `json:"type"`
-	Param   string `json:"param"`
-	Code    any    `json:"code"`
+	Message        string `json:"message"`
+	Type          string `json:"type"`
+	Param         string `json:"param"`
+	Code          any    `json:"code"`
+	ChannelId     int    `json:"channel_id,omitempty"`
+	UpstreamError int    `json:"upstream_error,omitempty"`
 }
 
 type OpenAIErrorWithStatusCode struct {
