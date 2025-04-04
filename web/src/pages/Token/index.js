@@ -8,15 +8,17 @@ const Token = () => {
     <>
       <Layout>
         <Layout.Header>
-          <Banner
-            type='warning'
-            description={t(
-              '令牌无法精确控制使用额度，只允许自用，请勿直接将令牌分发给他人。',
-            )}
-          />
-        </Layout.Header>
-        <Layout.Content>
-          <TokensTable />
+        <Banner
+          type='warning'
+          description={t('令牌无法精确控制使用额度，只允许自用，请勿直接将令牌分发给他人。')}
+        />
+        <Banner
+          type='info'
+          description={t('使用中转API时，需要把 https://api.openai.com 修改为 https://aihubmax.com')}
+        />
+      </Layout.Header>
+      <Layout.Content>
+        <TokensTable />
         </Layout.Content>
       </Layout>
     </>

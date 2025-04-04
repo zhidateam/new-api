@@ -141,7 +141,7 @@ const HeaderBar = () => {
       icon: <IconTerminal style={headerIconStyle} />,
     },
     {
-      text: t('定价'),
+      text: t('模型列表'),
       itemKey: 'pricing',
       to: '/pricing',
       icon: <IconPriceTag style={headerIconStyle} />,
@@ -163,6 +163,12 @@ const HeaderBar = () => {
       itemKey: 'about',
       to: '/about',
       icon: <IconInfoCircle style={headerIconStyle} />,
+    },
+    {
+      text: t('客服'),
+      itemKey: 'customer_service',
+      to: '#',
+      icon: <IconHelpCircle style={headerIconStyle} />,
     },
   ];
 
