@@ -42,12 +42,41 @@ func relayHandler(c *gin.Context, relayMode int) *dto.OpenAIErrorWithStatusCode 
 	return err
 }
 
+// 判断是否是大模型返回的欠费错误
+func isInsufficientQuotaError(err *dto.OpenAIErrorWithStatusCode) bool {
+	if err == nil {
+		return false
+	}
+	
+	// 检查错误消息中是否包含欠费相关的关键词
+	lowerMsg := strings.ToLower(err.Error.Message)
+	quotaKeywords := []string{
+		"insufficient_quota",
+		"insufficient funds",
+		"insufficient balance",
+		"quota exceeded",
+		"balance insufficient",
+		"账户余额不足",
+		"余额不足",
+		"欠费",
+	}
+	
+	for _, keyword := range quotaKeywords {
+		if strings.Contains(lowerMsg, keyword) {
+			return true
+		}
+	}
+	
+	return false
+}
+
 func Relay(c *gin.Context) {
 	relayMode := constant.Path2RelayMode(c.Request.URL.Path)
 	requestId := c.GetString(common.RequestIdKey)
 	group := c.GetString("group")
 	originalModel := c.GetString("original_model")
 	var openaiErr *dto.OpenAIErrorWithStatusCode
+	var lastChannelId int
 
 	for i := 0; i <= common.RetryTimes; i++ {
 		channel, err := getChannel(c, group, originalModel, i)
@@ -56,6 +85,7 @@ func Relay(c *gin.Context) {
 			openaiErr = service.OpenAIErrorWrapperLocal(err, "get_channel_failed", http.StatusInternalServerError)
 			break
 		}
+		lastChannelId = channel.Id
 
 		openaiErr = relayRequest(c, relayMode, channel)
 
@@ -80,6 +110,15 @@ func Relay(c *gin.Context) {
 			common.LogError(c, fmt.Sprintf("origin 429 error: %s", openaiErr.Error.Message))
 			openaiErr.Error.Message = "当前分组上游负载已饱和，请稍后再试"
 		}
+		
+		// 处理大模型返回的欠费错误
+		if isInsufficientQuotaError(openaiErr) {
+			openaiErr.Error.UpstreamError = 1
+		}
+		
+		// 在所有错误响应中添加 channelId
+		openaiErr.Error.ChannelId = lastChannelId
+		
 		openaiErr.Error.Message = common.MessageWithRequestId(openaiErr.Error.Message, requestId)
 		c.JSON(openaiErr.StatusCode, gin.H{
 			"error": openaiErr.Error,
@@ -149,11 +188,11 @@ func WssRelay(c *gin.Context) {
 }
 
 func RelayClaude(c *gin.Context) {
-	//relayMode := constant.Path2RelayMode(c.Request.URL.Path)
 	requestId := c.GetString(common.RequestIdKey)
 	group := c.GetString("group")
 	originalModel := c.GetString("original_model")
 	var claudeErr *dto.ClaudeErrorWithStatusCode
+	var lastChannelId int
 
 	for i := 0; i <= common.RetryTimes; i++ {
 		channel, err := getChannel(c, group, originalModel, i)
@@ -162,6 +201,7 @@ func RelayClaude(c *gin.Context) {
 			claudeErr = service.ClaudeErrorWrapperLocal(err, "get_channel_failed", http.StatusInternalServerError)
 			break
 		}
+		lastChannelId = channel.Id
 
 		claudeErr = claudeRequest(c, channel)
 
@@ -184,6 +224,8 @@ func RelayClaude(c *gin.Context) {
 	}
 
 	if claudeErr != nil {
+		// 在所有错误响应中添加 channelId
+		claudeErr.Error.ChannelId = lastChannelId
 		claudeErr.Error.Message = common.MessageWithRequestId(claudeErr.Error.Message, requestId)
 		c.JSON(claudeErr.StatusCode, gin.H{
 			"type":  "error",
