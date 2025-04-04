@@ -117,7 +117,9 @@ func OaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 	model := info.UpstreamModelName
 
 	var responseTextBuilder strings.Builder
-	var usage = &dto.Usage{}
+	var usage = &dto.Usage{
+		ChannelId: info.ChannelId,
+	}
 	var streamItems []string // store stream items
 	var forceFormat bool
 	var thinkToContent bool
@@ -138,6 +140,13 @@ func OaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 
 	helper.StreamScannerHandler(c, resp, info, func(data string) bool {
 		if lastStreamData != "" {
+			var streamResponse dto.ChatCompletionsStreamResponse
+			if err := json.Unmarshal(common.StringToByteSlice(lastStreamData), &streamResponse); err == nil {
+				// Add channelId to each stream response
+				streamResponse.ChannelId = info.ChannelId
+				jsonData, _ := json.Marshal(streamResponse)
+				lastStreamData = string(jsonData)
+			}
 			err := handleStreamFormat(c, info, lastStreamData, forceFormat, thinkToContent)
 			if err != nil {
 				common.SysError("error handling stream format: " + err.Error())
@@ -216,9 +225,16 @@ func OpenaiHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayI
 		}, nil
 	}
 
+	// Add channelId to the response
+	simpleResponse.ChannelId = info.ChannelId
+
 	switch info.RelayFormat {
 	case relaycommon.RelayFormatOpenAI:
-		break
+		// Marshal the response with channelId
+		responseBody, err = json.Marshal(simpleResponse)
+		if err != nil {
+			return service.OpenAIErrorWrapper(err, "marshal_response_body_failed", http.StatusInternalServerError), nil
+		}
 	case relaycommon.RelayFormatClaude:
 		claudeResp := service.ResponseOpenAI2Claude(&simpleResponse, info)
 		claudeRespStr, err := json.Marshal(claudeResp)
@@ -595,3 +611,5 @@ func preConsumeUsage(ctx *gin.Context, info *relaycommon.RelayInfo, usage *dto.R
 	err := service.PreWssConsumeQuota(ctx, info, usage)
 	return err
 }
+
+// handleStreamFormat is defined in helper.go
