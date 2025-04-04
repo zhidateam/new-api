@@ -113,7 +113,9 @@ type ChatCompletionsStreamResponse struct {
 	Model             string                                `json:"model"`
 	SystemFingerprint string                                `json:"system_fingerprint,omitempty"`
 	Choices           []ChatCompletionsStreamResponseChoice `json:"choices"`
-	Usage             *Usage                                `json:"usage"`
+	Usage             *Usage                                `json:"usage,omitempty"`
+	Error             *OpenAIError                          `json:"error,omitempty"`
+	ChannelId         int                                   `json:"channel_id,omitempty"`
 }
 
 func (c *ChatCompletionsStreamResponse) IsToolCall() bool {
@@ -141,18 +143,17 @@ func (c *ChatCompletionsStreamResponse) Copy() *ChatCompletionsStreamResponse {
 		SystemFingerprint: c.SystemFingerprint,
 		Choices:           choices,
 		Usage:             c.Usage,
+		Error:             c.Error,
+		ChannelId:         c.ChannelId,
 	}
 }
 
 func (c *ChatCompletionsStreamResponse) GetSystemFingerprint() string {
-	if c.SystemFingerprint == nil {
-		return ""
-	}
-	return *c.SystemFingerprint
+	return c.SystemFingerprint
 }
 
 func (c *ChatCompletionsStreamResponse) SetSystemFingerprint(s string) {
-	c.SystemFingerprint = &s
+	c.SystemFingerprint = s
 }
 
 type ChatCompletionsStreamResponseSimple struct {

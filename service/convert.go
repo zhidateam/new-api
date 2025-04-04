@@ -159,8 +159,9 @@ func ClaudeToOpenAIRequest(claudeRequest dto.ClaudeRequest, info *relaycommon.Re
 
 func OpenAIErrorToClaudeError(openAIError *dto.OpenAIErrorWithStatusCode) *dto.ClaudeErrorWithStatusCode {
 	claudeError := dto.ClaudeError{
-		Type:    "new_api_error",
-		Message: openAIError.Error.Message,
+		Type:      "new_api_error",
+		Message:   openAIError.Error.Message,
+		ChannelId: openAIError.Error.ChannelId,
 	}
 	return &dto.ClaudeErrorWithStatusCode{
 		Error:      claudeError,
@@ -170,8 +171,9 @@ func OpenAIErrorToClaudeError(openAIError *dto.OpenAIErrorWithStatusCode) *dto.C
 
 func ClaudeErrorToOpenAIError(claudeError *dto.ClaudeErrorWithStatusCode) *dto.OpenAIErrorWithStatusCode {
 	openAIError := dto.OpenAIError{
-		Message: claudeError.Error.Message,
-		Type:    "new_api_error",
+		Message:   claudeError.Error.Message,
+		Type:      "new_api_error",
+		ChannelId: claudeError.Error.ChannelId,
 	}
 	return &dto.OpenAIErrorWithStatusCode{
 		Error:      openAIError,
@@ -375,8 +377,8 @@ func ResponseOpenAI2Claude(openAIResponse *dto.OpenAITextResponse, info *relayco
 	claudeResponse.Content = contents
 	claudeResponse.StopReason = stopReason
 	claudeResponse.Usage = &dto.ClaudeUsage{
-		InputTokens:  openAIResponse.PromptTokens,
-		OutputTokens: openAIResponse.CompletionTokens,
+		InputTokens:  openAIResponse.Usage.PromptTokens,
+		OutputTokens: openAIResponse.Usage.CompletionTokens,
 	}
 
 	return claudeResponse
