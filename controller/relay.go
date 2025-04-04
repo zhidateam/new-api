@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"io"
 	"log"
 	"net/http"
@@ -19,6 +17,9 @@ import (
 	"one-api/relay/helper"
 	"one-api/service"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 func relayHandler(c *gin.Context, relayMode int) *dto.OpenAIErrorWithStatusCode {
@@ -47,7 +48,7 @@ func isInsufficientQuotaError(err *dto.OpenAIErrorWithStatusCode) bool {
 	if err == nil {
 		return false
 	}
-	
+
 	// 检查错误消息中是否包含欠费相关的关键词
 	lowerMsg := strings.ToLower(err.Error.Message)
 	quotaKeywords := []string{
@@ -56,18 +57,17 @@ func isInsufficientQuotaError(err *dto.OpenAIErrorWithStatusCode) bool {
 		"insufficient balance",
 		"quota exceeded",
 		"balance insufficient",
-		"tokenstatusexhausted",
 		"账户余额不足",
 		"余额不足",
 		"欠费",
 	}
-	
+
 	for _, keyword := range quotaKeywords {
 		if strings.Contains(lowerMsg, keyword) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -113,10 +113,10 @@ func Relay(c *gin.Context) {
 		}
 
 		openaiErr.Error.UpstreamError = 1
-		
+
 		// 在所有错误响应中添加 channelId
 		openaiErr.Error.ChannelId = lastChannelId
-		
+
 		openaiErr.Error.Message = common.MessageWithRequestId(openaiErr.Error.Message, requestId)
 		c.JSON(openaiErr.StatusCode, gin.H{
 			"error": openaiErr.Error,
