@@ -56,6 +56,7 @@ func isInsufficientQuotaError(err *dto.OpenAIErrorWithStatusCode) bool {
 		"insufficient balance",
 		"quota exceeded",
 		"balance insufficient",
+		"tokenstatusexhausted",
 		"账户余额不足",
 		"余额不足",
 		"欠费",
@@ -110,11 +111,8 @@ func Relay(c *gin.Context) {
 			common.LogError(c, fmt.Sprintf("origin 429 error: %s", openaiErr.Error.Message))
 			openaiErr.Error.Message = "当前分组上游负载已饱和，请稍后再试"
 		}
-		
-		// 处理大模型返回的欠费错误
-		if isInsufficientQuotaError(openaiErr) {
-			openaiErr.Error.UpstreamError = 1
-		}
+
+		openaiErr.Error.UpstreamError = 1
 		
 		// 在所有错误响应中添加 channelId
 		openaiErr.Error.ChannelId = lastChannelId

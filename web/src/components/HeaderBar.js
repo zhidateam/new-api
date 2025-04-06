@@ -22,7 +22,8 @@ import {
   IconLanguage,
   IconInfoCircle,
   IconCreditCard,
-  IconTerminal
+  IconTerminal,
+  IconCustomerSupport
 } from '@douyinfe/semi-icons';
 import { Avatar, Button, Dropdown, Layout, Nav, Switch, Tag } from '@douyinfe/semi-ui';
 import { stringToColor } from '../helpers/render';
@@ -153,8 +154,8 @@ const HeaderBar = () => {
     {
       text: t('客服'),
       itemKey: 'customer_service',
-      to: '#',
-      icon: <IconHelpCircle style={headerIconStyle} />,
+      to: '/udocs/kf',
+      icon: <IconCustomerSupport style={headerIconStyle} />,
     },
   ];
 
@@ -236,6 +237,7 @@ const HeaderBar = () => {
                 detail: '/detail',
                 home: '/',
                 chat: '/chat',
+                customer_service: '/udocs/kf',
               };
               return (
                 <div onClick={(e) => {

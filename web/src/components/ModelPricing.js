@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useMemo, useState } from 'react';
 import { API, copy, showError, showInfo, showSuccess } from '../helpers';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 import {
   Banner,
@@ -32,6 +33,7 @@ const ModelPricing = () => {
   const [modalImageUrl, setModalImageUrl] = useState('');
   const [isModalOpenurl, setIsModalOpenurl] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState('default');
+  const [usdToRmbPrice, setUsdToRmbPrice] = useState(0);
 
   const rowSelection = useMemo(
       () => ({
@@ -305,6 +307,13 @@ const ModelPricing = () => {
     } else {
       showError(message);
     }
+
+    // 获取汇率信息
+    const statusRes = await API.get('/api/status');
+    if (statusRes.data.success) {
+      setUsdToRmbPrice(statusRes.data.data.price);
+    }
+
     setLoading(false);
   };
 
@@ -352,8 +361,21 @@ const ModelPricing = () => {
         <Banner 
             type="info"
             fullMode={false}
-            description={<div>{t('按量计费费用 = 分组倍率 × 模型倍率 × （提示token数 + 补全token数 × 补全倍率）/ 500000 （单位：美元）')}</div>}
+            description={<div>{t(`按量计费费用 = 分组倍率 × 模型倍率 × （提示token数 + 补全token数 × 补全倍率）/ 500000 （单位：美元，1美元=${usdToRmbPrice}元人民币）`)}</div>}
             closeIcon="null"
+        />
+        <br/>
+        <Banner
+          type="info"
+          fullMode={false}
+          description={
+            <span>
+              {t('如果不知道怎么选择模型，可以参考 ')}
+              <Link to="/udocs/popular-models">{t('常用模型')}</Link>
+              {t(' 快速选择')}
+            </span>
+          }
+          closeIcon="null"
         />
         <br/>
         <Space style={{ marginBottom: 16 }}>
