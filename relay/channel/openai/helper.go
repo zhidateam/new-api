@@ -18,17 +18,7 @@ func handleStreamFormat(c *gin.Context, info *relaycommon.RelayInfo, data string
 	info.SendResponseCount++
 	switch info.RelayFormat {
 	case relaycommon.RelayFormatOpenAI:
-		var streamResponse dto.ChatCompletionsStreamResponse
-		if err := json.Unmarshal(common.StringToByteSlice(data), &streamResponse); err != nil {
-			return err
-		}
-		// Add channelId to the response
-		streamResponse.ChannelId = info.ChannelId
-		jsonData, err := json.Marshal(streamResponse)
-		if err != nil {
-			return err
-		}
-		return helper.ObjectData(c, string(jsonData))
+		return sendStreamData(c, info, data, forceFormat, thinkToContent)
 	case relaycommon.RelayFormatClaude:
 		return handleClaudeFormat(c, data, info)
 	}
@@ -175,7 +165,6 @@ func handleFinalResponse(c *gin.Context, info *relaycommon.RelayInfo, lastStream
 		if info.ShouldIncludeUsage && !containStreamUsage {
 			response := helper.GenerateFinalUsageResponse(responseId, createAt, model, *usage)
 			response.SetSystemFingerprint(systemFingerprint)
-			response.ChannelId = info.ChannelId
 			helper.ObjectData(c, response)
 		}
 		helper.Done(c)
@@ -190,7 +179,6 @@ func handleFinalResponse(c *gin.Context, info *relaycommon.RelayInfo, lastStream
 		if !containStreamUsage {
 			streamResponse.Usage = usage
 		}
-		streamResponse.ChannelId = info.ChannelId
 
 		claudeResponses := service.StreamResponseOpenAI2Claude(&streamResponse, info)
 		for _, resp := range claudeResponses {
