@@ -171,8 +171,9 @@ func (c *ClaudeRequest) ParseSystem() []ClaudeMediaMessage {
 }
 
 type ClaudeError struct {
-	Type    string `json:"type,omitempty"`
-	Message string `json:"message,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Message   string `json:"message,omitempty"`
+	ChannelId int    `json:"channel_id,omitempty"`
 }
 
 type ClaudeErrorWithStatusCode struct {

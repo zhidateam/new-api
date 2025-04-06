@@ -26,6 +26,8 @@ import {
   IconCreditCard,
   IconTerminal,
   IconCustomerSupport
+  IconTerminal,
+  IconCustomerSupport
 } from '@douyinfe/semi-icons';
 import {
   Avatar,

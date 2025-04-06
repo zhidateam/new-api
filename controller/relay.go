@@ -57,6 +57,7 @@ func isInsufficientQuotaError(err *dto.OpenAIErrorWithStatusCode) bool {
 		"insufficient balance",
 		"quota exceeded",
 		"balance insufficient",
+		"tokenstatusexhausted",
 		"账户余额不足",
 		"余额不足",
 		"欠费",
