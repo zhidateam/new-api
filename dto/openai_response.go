@@ -21,15 +21,15 @@ type OpenAITextResponseChoice struct {
 }
 
 type OpenAITextResponse struct {
-	Id                string                     `json:"id"`
-	Object            string                     `json:"object"`
-	Created           int64                      `json:"created"`
-	Model             string                     `json:"model"`
-	SystemFingerprint string                     `json:"system_fingerprint,omitempty"`
-	Choices           []OpenAITextResponseChoice `json:"choices"`
-	Usage             Usage                      `json:"usage"`
-	Error             *OpenAIError               `json:"error,omitempty"`
-	ChannelId         int                        `json:"channel_id,omitempty"`
+	Id      string                     `json:"id"`
+	Model   string                     `json:"model"`
+	Object  string                     `json:"object"`
+	Created int64                      `json:"created"`
+	Choices []OpenAITextResponseChoice `json:"choices"`
+	Error   *OpenAIError               `json:"error,omitempty"`
+	Usage   `json:"usage"`
+	//aihubmax加入字段
+	ChannelId int `json:"channel_id,omitempty"`
 }
 
 type OpenAIEmbeddingResponseItem struct {
@@ -113,9 +113,7 @@ type ChatCompletionsStreamResponse struct {
 	Model             string                                `json:"model"`
 	SystemFingerprint string                                `json:"system_fingerprint,omitempty"`
 	Choices           []ChatCompletionsStreamResponseChoice `json:"choices"`
-	Usage             *Usage                                `json:"usage,omitempty"`
-	Error             *OpenAIError                          `json:"error,omitempty"`
-	ChannelId         int                                   `json:"channel_id,omitempty"`
+	Usage             *Usage                                `json:"usage"`
 }
 
 func (c *ChatCompletionsStreamResponse) IsToolCall() bool {
@@ -143,17 +141,18 @@ func (c *ChatCompletionsStreamResponse) Copy() *ChatCompletionsStreamResponse {
 		SystemFingerprint: c.SystemFingerprint,
 		Choices:           choices,
 		Usage:             c.Usage,
-		Error:             c.Error,
-		ChannelId:         c.ChannelId,
 	}
 }
 
 func (c *ChatCompletionsStreamResponse) GetSystemFingerprint() string {
-	return c.SystemFingerprint
+	if c.SystemFingerprint == nil {
+		return ""
+	}
+	return *c.SystemFingerprint
 }
 
 func (c *ChatCompletionsStreamResponse) SetSystemFingerprint(s string) {
-	c.SystemFingerprint = s
+	c.SystemFingerprint = &s
 }
 
 type ChatCompletionsStreamResponseSimple struct {
@@ -176,10 +175,11 @@ type Usage struct {
 
 	PromptTokensDetails    InputTokenDetails  `json:"prompt_tokens_details"`
 	CompletionTokenDetails OutputTokenDetails `json:"completion_tokens_details"`
-	ChannelId              int                `json:"channel_id,omitempty"`
 	InputTokens            int                `json:"input_tokens"`
 	OutputTokens           int                `json:"output_tokens"`
 	InputTokensDetails     *InputTokenDetails `json:"input_tokens_details"`
+	//aihubmax字段
+	ChannelId int `json:"channel_id,omitempty"`
 }
 
 type InputTokenDetails struct {

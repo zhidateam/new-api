@@ -127,7 +127,7 @@ func GenerateStopResponse(id string, createAt int64, model string, finishReason 
 		Object:            "chat.completion.chunk",
 		Created:           createAt,
 		Model:             model,
-		SystemFingerprint: "",
+		SystemFingerprint: nil,
 		Choices: []dto.ChatCompletionsStreamResponseChoice{
 			{
 				FinishReason: &finishReason,
@@ -142,9 +142,8 @@ func GenerateFinalUsageResponse(id string, createAt int64, model string, usage d
 		Object:            "chat.completion.chunk",
 		Created:           createAt,
 		Model:             model,
-		SystemFingerprint: "",
+		SystemFingerprint: nil,
 		Choices:           make([]dto.ChatCompletionsStreamResponseChoice, 0),
 		Usage:             &usage,
-		ChannelId:         usage.ChannelId,
 	}
 }
