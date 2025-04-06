@@ -37,6 +37,7 @@ const TopUp = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [payWay, setPayWay] = useState('');
+  const [usdToRmbPrice, setUsdToRmbPrice] = useState(0);
 
   const topUp = async () => {
     if (redemptionCode === '') {
@@ -170,6 +171,9 @@ const TopUp = () => {
       if (status.enable_online_topup) {
         setEnableOnlineTopUp(status.enable_online_topup);
       }
+      if (status.price) {
+        setUsdToRmbPrice(status.price);
+      }
     }
     getUserQuota().then();
   }, []);
@@ -280,7 +284,7 @@ const TopUp = () => {
                     disabled={!enableOnlineTopUp}
                     field={'redemptionCount'}
                     label={t('实付金额：') + ' ' + renderAmount()}
-                    placeholder={t('充值数量，最低 ') + renderQuotaWithAmount(minTopUp)}
+                    placeholder={t('充值数量，最低 ') + renderQuotaWithAmount(minTopUp) + t('，1美元 = ') + usdToRmbPrice + t('元人民币')}
                     name='redemptionCount'
                     type={'number'}
                     value={topUpCount}

@@ -32,11 +32,11 @@ const EditToken = (props) => {
     name: '我的API',
     remain_quota: isEdit ? 0 : 500000,
     expired_time: -1,
-    unlimited_quota: false,
+    unlimited_quota: true,
     model_limits_enabled: false,
     model_limits: [],
     allow_ips: '',
-    group: '',
+    group: 'default',
   };
   const [inputs, setInputs] = useState(originInputs);
   const {
