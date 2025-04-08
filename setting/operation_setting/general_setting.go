@@ -4,11 +4,13 @@ import "one-api/setting/config"
 
 type GeneralSetting struct {
 	DocsLink string `json:"docs_link"`
+	CustomerServiceLink string `json:"customer_service_link"`
 }
 
 // 默认配置
 var generalSetting = GeneralSetting{
 	DocsLink: "https://docs.newapi.pro",
+	CustomerServiceLink: "https://www.aihubmax.com/udocs/kf",
 }
 
 func init() {

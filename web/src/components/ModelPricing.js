@@ -371,7 +371,7 @@ const ModelPricing = () => {
           description={
             <span>
               {t('如果不知道怎么选择模型，可以参考 ')}
-              <Link to="/udocs/popular-models">{t('常用模型')}</Link>
+              <a href="http://www.aihubmax.com/udocs/popular-models" target="_blank" rel="noopener noreferrer">{t('常用模型')}</a>
               {t(' 快速选择')}
             </span>
           }

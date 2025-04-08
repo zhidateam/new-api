@@ -16,6 +16,7 @@ export default function GeneralSettings(props) {
   const [inputs, setInputs] = useState({
     TopUpLink: '',
     'general_setting.docs_link': '',
+    'general_setting.customer_service_link': '',
     QuotaPerUnit: '',
     RetryTimes: '',
     DisplayInCurrencyEnabled: false,
@@ -28,12 +29,20 @@ export default function GeneralSettings(props) {
   const [inputsRow, setInputsRow] = useState(inputs);
 
   function onChange(value, e) {
-    const name = e.target.id;
-    setInputs((inputs) => ({ ...inputs, [name]: value }));
+    const name = e.target?.id || e.field;
+    console.log('onChange:', name, value);
+    setInputs((inputs) => {
+      const newInputs = { ...inputs, [name]: value };
+      console.log('newInputs:', newInputs);
+      return newInputs;
+    });
   }
 
   function onSubmit() {
+    console.log('inputs:', inputs);
+    console.log('inputsRow:', inputsRow);
     const updateArray = compareObjects(inputs, inputsRow);
+    console.log('updateArray:', updateArray);
     if (!updateArray.length) return showWarning(t('你似乎并没有修改什么'));
     const requestQueue = updateArray.map((item) => {
       let value = '';
@@ -114,6 +123,16 @@ export default function GeneralSettings(props) {
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                 <Form.Input
+                  field={'general_setting.customer_service_link'}
+                  label={t('客服地址')}
+                  initValue={''}
+                  placeholder={t('例如 https://www.aihubmax.com/udocs/kf')}
+                  onChange={onChange}
+                  showClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Input
                   field={'QuotaPerUnit'}
                   label={t('单位美元额度')}
                   initValue={''}
@@ -142,12 +161,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={(value) => {
-                    setInputs({
-                      ...inputs,
-                      DisplayInCurrencyEnabled: value,
-                    });
-                  }}
+                  onChange={onChange}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
@@ -157,12 +171,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={(value) =>
-                    setInputs({
-                      ...inputs,
-                      DisplayTokenStatEnabled: value,
-                    })
-                  }
+                  onChange={onChange}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
@@ -172,12 +181,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={(value) =>
-                    setInputs({
-                      ...inputs,
-                      DefaultCollapseSidebar: value,
-                    })
-                  }
+                  onChange={onChange}
                 />
               </Col>
             </Row>
@@ -189,12 +193,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={(value) =>
-                    setInputs({
-                      ...inputs,
-                      DemoSiteEnabled: value
-                    })
-                  }
+                  onChange={onChange}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
@@ -205,12 +204,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={(value) =>
-                    setInputs({
-                      ...inputs,
-                      SelfUseModeEnabled: value
-                    })
-                  }
+                  onChange={onChange}
                 />
               </Col>
             </Row>
