@@ -126,6 +126,7 @@ const HeaderBar = () => {
   // Check if self-use mode is enabled
   const isSelfUseMode = statusState?.status?.self_use_mode_enabled || false;
   const docsLink = statusState?.status?.docs_link || '';
+  const customerServiceLink = statusState?.status?.customer_service_link || '';
   const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
 
   let buttons = [
@@ -168,7 +169,8 @@ const HeaderBar = () => {
     {
       text: t('客服'),
       itemKey: 'customer_service',
-      to: '/udocs/kf',
+      isExternal: true,
+      externalLink: customerServiceLink,
       icon: <IconCustomerSupport style={headerIconStyle} />,
     },
   ];

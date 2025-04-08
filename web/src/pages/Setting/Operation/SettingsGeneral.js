@@ -25,6 +25,7 @@ export default function GeneralSettings(props) {
   const [inputs, setInputs] = useState({
     TopUpLink: '',
     'general_setting.docs_link': '',
+    'general_setting.customer_service_link': '',
     QuotaPerUnit: '',
     RetryTimes: '',
     DisplayInCurrencyEnabled: false,
@@ -43,7 +44,10 @@ export default function GeneralSettings(props) {
   }
 
   function onSubmit() {
+    console.log('inputs:', inputs);
+    console.log('inputsRow:', inputsRow);
     const updateArray = compareObjects(inputs, inputsRow);
+    console.log('updateArray:', updateArray);
     if (!updateArray.length) return showWarning(t('你似乎并没有修改什么'));
     const requestQueue = updateArray.map((item) => {
       let value = '';
@@ -120,6 +124,26 @@ export default function GeneralSettings(props) {
                   initValue={''}
                   placeholder={t('例如 https://docs.newapi.pro')}
                   onChange={handleFieldChange('general_setting.docs_link')}
+                  showClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Input
+                  field={'general_setting.customer_service_link'}
+                  label={t('客服地址')}
+                  initValue={''}
+                  placeholder={t('例如 https://www.aihubmax.com/udocs/kf')}
+                  onChange={handleFieldChange('general_setting.docs_link')}
+                  showClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Input
+                  field={'general_setting.customer_service_link'}
+                  label={t('客服地址')}
+                  initValue={''}
+                  placeholder={t('例如 https://www.aihubmax.com/udocs/kf')}
+                  onChange={onChange}
                   showClear
                 />
               </Col>
