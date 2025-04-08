@@ -28,21 +28,14 @@ export default function GeneralSettings(props) {
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
 
-  function onChange(value, e) {
-    const name = e.target?.id || e.field;
-    console.log('onChange:', name, value);
-    setInputs((inputs) => {
-      const newInputs = { ...inputs, [name]: value };
-      console.log('newInputs:', newInputs);
-      return newInputs;
-    });
+  function handleFieldChange(fieldName) {
+    return (value) => {
+      setInputs((inputs) => ({ ...inputs, [fieldName]: value }));
+    };
   }
 
   function onSubmit() {
-    console.log('inputs:', inputs);
-    console.log('inputsRow:', inputsRow);
     const updateArray = compareObjects(inputs, inputsRow);
-    console.log('updateArray:', updateArray);
     if (!updateArray.length) return showWarning(t('你似乎并没有修改什么'));
     const requestQueue = updateArray.map((item) => {
       let value = '';
@@ -107,7 +100,7 @@ export default function GeneralSettings(props) {
                   label={t('充值链接')}
                   initValue={''}
                   placeholder={t('例如发卡网站的购买链接')}
-                  onChange={onChange}
+                  onChange={handleFieldChange('TopUpLink')}
                   showClear
                 />
               </Col>
@@ -117,7 +110,7 @@ export default function GeneralSettings(props) {
                   label={t('文档地址')}
                   initValue={''}
                   placeholder={t('例如 https://docs.newapi.pro')}
-                  onChange={onChange}
+                  onChange={handleFieldChange('general_setting.docs_link')}
                   showClear
                 />
               </Col>
@@ -127,7 +120,7 @@ export default function GeneralSettings(props) {
                   label={t('客服地址')}
                   initValue={''}
                   placeholder={t('例如 https://www.aihubmax.com/udocs/kf')}
-                  onChange={onChange}
+                  onChange={handleFieldChange('general_setting.customer_service_link')}
                   showClear
                 />
               </Col>
@@ -137,7 +130,7 @@ export default function GeneralSettings(props) {
                   label={t('单位美元额度')}
                   initValue={''}
                   placeholder={t('一单位货币能兑换的额度')}
-                  onChange={onChange}
+                  onChange={handleFieldChange('QuotaPerUnit')}
                   showClear
                   onClick={() => setShowQuotaWarning(true)}
                 />
@@ -148,7 +141,7 @@ export default function GeneralSettings(props) {
                   label={t('失败重试次数')}
                   initValue={''}
                   placeholder={t('失败重试次数')}
-                  onChange={onChange}
+                  onChange={handleFieldChange('RetryTimes')}
                   showClear
                 />
               </Col>
@@ -161,7 +154,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={onChange}
+                  onChange={handleFieldChange('DisplayInCurrencyEnabled')}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
@@ -171,7 +164,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={onChange}
+                  onChange={handleFieldChange('DisplayTokenStatEnabled')}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
@@ -181,7 +174,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={onChange}
+                  onChange={handleFieldChange('DefaultCollapseSidebar')}
                 />
               </Col>
             </Row>
@@ -193,7 +186,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={onChange}
+                  onChange={handleFieldChange('DemoSiteEnabled')}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
@@ -204,7 +197,7 @@ export default function GeneralSettings(props) {
                   size='default'
                   checkedText='｜'
                   uncheckedText='〇'
-                  onChange={onChange}
+                  onChange={handleFieldChange('SelfUseModeEnabled')}
                 />
               </Col>
             </Row>
