@@ -18,7 +18,7 @@ const Token = () => {
           />
           <Banner
             type='info'
-            description={`使用中转API时，需要把 https://api.openai.com 修改为 ${statusState?.status?.server_address || ''}`}
+            description={`使用中转API时，需要把 https://api.openai.com 修改为 ${statusState?.status?.server_address || ''}，如果不会操作，请联系客服`}
           />
         </Layout.Header>
         <Layout.Content>
