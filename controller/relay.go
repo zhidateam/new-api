@@ -16,6 +16,7 @@ import (
 	relayconstant "one-api/relay/constant"
 	"one-api/relay/helper"
 	"one-api/service"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -95,7 +96,7 @@ func Relay(c *gin.Context) {
 			return // 成功处理请求，直接返回
 		}
 
-		go processChannelError(c, channel.Id, channel.Type, channel.Name, channel.GetAutoBan(), openaiErr)
+		_ = processChannelError(c, channel.Id, channel.Type, channel.Name, channel.GetAutoBan(), openaiErr)
 
 		if !shouldRetry(c, openaiErr, common.RetryTimes-i) {
 			break
@@ -103,7 +104,26 @@ func Relay(c *gin.Context) {
 	}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
+		// 构建错误信息字符串
+		errorMsgs := []string{}
+		// 打印所有的context keys以便调试
+		common.LogInfo(c, fmt.Sprintf("正在获取错误信息，useChannel: %v", useChannel))
+		for _, chIdStr := range useChannel {
+			chId, _ := strconv.Atoi(chIdStr)
+			key := fmt.Sprintf("channel_error_%d", chId)
+			common.LogInfo(c, fmt.Sprintf("检查key: %s", key))
+			if errMsg, exists := c.Get(key); exists {
+				common.LogInfo(c, fmt.Sprintf("找到错误信息: %s", errMsg.(string)))
+				errorMsgs = append(errorMsgs, errMsg.(string))
+			} else {
+				common.LogInfo(c, fmt.Sprintf("未找到key: %s的错误信息", key))
+			}
+		}
+
 		retryLogStr := fmt.Sprintf("重试：%s", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(useChannel)), "->"), "[]"))
+		if len(errorMsgs) > 0 {
+			retryLogStr = fmt.Sprintf("%s\n汇总错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
+		}
 		common.LogInfo(c, retryLogStr)
 	}
 
@@ -169,7 +189,7 @@ func WssRelay(c *gin.Context) {
 			return // 成功处理请求，直接返回
 		}
 
-		go processChannelError(c, channel.Id, channel.Type, channel.Name, channel.GetAutoBan(), openaiErr)
+		_ = processChannelError(c, channel.Id, channel.Type, channel.Name, channel.GetAutoBan(), openaiErr)
 
 		if !shouldRetry(c, openaiErr, common.RetryTimes-i) {
 			break
@@ -177,7 +197,20 @@ func WssRelay(c *gin.Context) {
 	}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
+		// 构建错误信息字符串
+		errorMsgs := []string{}
+		for _, chIdStr := range useChannel {
+			chId, _ := strconv.Atoi(chIdStr)
+			key := fmt.Sprintf("channel_error_%d", chId)
+			if errMsg, exists := c.Get(key); exists {
+				errorMsgs = append(errorMsgs, errMsg.(string))
+			}
+		}
+
 		retryLogStr := fmt.Sprintf("重试：%s", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(useChannel)), "->"), "[]"))
+		if len(errorMsgs) > 0 {
+			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
+		}
 		common.LogInfo(c, retryLogStr)
 	}
 
@@ -214,7 +247,7 @@ func RelayClaude(c *gin.Context) {
 
 		openaiErr := service.ClaudeErrorToOpenAIError(claudeErr)
 
-		go processChannelError(c, channel.Id, channel.Type, channel.Name, channel.GetAutoBan(), openaiErr)
+		_ = processChannelError(c, channel.Id, channel.Type, channel.Name, channel.GetAutoBan(), openaiErr)
 
 		if !shouldRetry(c, openaiErr, common.RetryTimes-i) {
 			break
@@ -222,7 +255,20 @@ func RelayClaude(c *gin.Context) {
 	}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
+		// 构建错误信息字符串
+		errorMsgs := []string{}
+		for _, chIdStr := range useChannel {
+			chId, _ := strconv.Atoi(chIdStr)
+			key := fmt.Sprintf("channel_error_%d", chId)
+			if errMsg, exists := c.Get(key); exists {
+				errorMsgs = append(errorMsgs, errMsg.(string))
+			}
+		}
+
 		retryLogStr := fmt.Sprintf("重试：%s", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(useChannel)), "->"), "[]"))
+		if len(errorMsgs) > 0 {
+			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
+		}
 		common.LogInfo(c, retryLogStr)
 	}
 
@@ -329,13 +375,19 @@ func shouldRetry(c *gin.Context, openaiErr *dto.OpenAIErrorWithStatusCode, retry
 	return true
 }
 
-func processChannelError(c *gin.Context, channelId int, channelType int, channelName string, autoBan bool, err *dto.OpenAIErrorWithStatusCode) {
+func processChannelError(c *gin.Context, channelId int, channelType int, channelName string, autoBan bool, err *dto.OpenAIErrorWithStatusCode) string {
 	// 不要使用context获取渠道信息，异步处理时可能会出现渠道信息不一致的情况
 	// do not use context to get channel info, there may be inconsistent channel info when processing asynchronously
-	common.LogError(c, fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, err.StatusCode, err.Error.Message))
+	errorMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, err.StatusCode, err.Error.Message)
+	common.LogError(c, errorMsg)
+	// 将错误信息直接存储到context中
+	key := fmt.Sprintf("channel_error_%d", channelId)
+	common.LogInfo(c, fmt.Sprintf("存储错误信息到key: %s, 错误信息: %s", key, errorMsg))
+	c.Set(key, errorMsg)
 	if service.ShouldDisableChannel(channelType, err) && autoBan {
 		service.DisableChannel(channelId, channelName, err.Error.Message)
 	}
+	return errorMsg
 }
 
 func RelayMidjourney(c *gin.Context) {
@@ -405,6 +457,13 @@ func RelayTask(c *gin.Context) {
 	taskErr := taskRelayHandler(c, relayMode)
 	if taskErr == nil {
 		retryTimes = 0
+	} else {
+		// 如果有错误，存储错误信息
+		errorMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, taskErr.StatusCode, taskErr.Message)
+		common.LogError(c, errorMsg)
+		key := fmt.Sprintf("channel_error_%d", channelId)
+		common.LogInfo(c, fmt.Sprintf("存储错误信息到key: %s, 错误信息: %s", key, errorMsg))
+		c.Set(key, errorMsg)
 	}
 	for i := 0; shouldRetryTaskRelay(c, channelId, taskErr, retryTimes) && i < retryTimes; i++ {
 		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i)
@@ -419,13 +478,35 @@ func RelayTask(c *gin.Context) {
 		common.LogInfo(c, fmt.Sprintf("using channel #%d to retry (remain times %d)", channel.Id, i))
 		middleware.SetupContextForSelectedChannel(c, channel, originalModel)
 
-		requestBody, err := common.GetRequestBody(c)
+		requestBody, _ := common.GetRequestBody(c)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
 		taskErr = taskRelayHandler(c, relayMode)
+
+		// 如果有错误，存储错误信息
+		if taskErr != nil {
+			errorMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, taskErr.StatusCode, taskErr.Message)
+			common.LogError(c, errorMsg)
+			key := fmt.Sprintf("channel_error_%d", channelId)
+			common.LogInfo(c, fmt.Sprintf("存储错误信息到key: %s, 错误信息: %s", key, errorMsg))
+			c.Set(key, errorMsg)
+		}
 	}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
+		// 构建错误信息字符串
+		errorMsgs := []string{}
+		for _, chIdStr := range useChannel {
+			chId, _ := strconv.Atoi(chIdStr)
+			key := fmt.Sprintf("channel_error_%d", chId)
+			if errMsg, exists := c.Get(key); exists {
+				errorMsgs = append(errorMsgs, errMsg.(string))
+			}
+		}
+
 		retryLogStr := fmt.Sprintf("重试：%s", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(useChannel)), "->"), "[]"))
+		if len(errorMsgs) > 0 {
+			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
+		}
 		common.LogInfo(c, retryLogStr)
 	}
 	if taskErr != nil {
