@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	relayconstant "one-api/relay/constant"
 	"one-api/relay/helper"
 	"one-api/service"
+	"os"
 	"strconv"
 	"strings"
 
@@ -121,10 +123,14 @@ func Relay(c *gin.Context) {
 		}
 
 		retryLogStr := fmt.Sprintf("重试：%s", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(useChannel)), "->"), "[]"))
+		common.LogInfo(c, retryLogStr)
 		if len(errorMsgs) > 0 {
 			retryLogStr = fmt.Sprintf("%s\n汇总错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
 		}
 		common.LogInfo(c, retryLogStr)
+		
+		// Send retry fail log asynchronously
+		sendRetryFailLog(c, originalModel, errorMsgs)
 	}
 
 	if openaiErr != nil {
@@ -146,6 +152,11 @@ func Relay(c *gin.Context) {
 		c.JSON(openaiErr.StatusCode, gin.H{
 			"error": openaiErr.Error,
 		})
+
+		if len(useChannel) == 1 {
+			fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, openaiErr.StatusCode, openaiErr.Error.Message)
+			sendRetryFailLog(c, originalModel, []string{fmtErrMsg})
+		}
 	}
 }
 
@@ -270,6 +281,9 @@ func RelayClaude(c *gin.Context) {
 			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
 		}
 		common.LogInfo(c, retryLogStr)
+		
+		// Send retry fail log asynchronously
+		sendRetryFailLog(c, originalModel, errorMsgs)
 	}
 
 	if claudeErr != nil {
@@ -280,6 +294,11 @@ func RelayClaude(c *gin.Context) {
 			"type":  "error",
 			"error": claudeErr.Error,
 		})
+
+		if len(useChannel) == 1 {
+			fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, claudeErr.StatusCode, claudeErr.Error.Message)
+			sendRetryFailLog(c, originalModel, []string{fmtErrMsg})
+		}
 	}
 }
 
@@ -508,12 +527,20 @@ func RelayTask(c *gin.Context) {
 			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
 		}
 		common.LogInfo(c, retryLogStr)
+		
+		// Send retry fail log asynchronously
+		sendRetryFailLog(c, originalModel, errorMsgs)
 	}
 	if taskErr != nil {
 		if taskErr.StatusCode == http.StatusTooManyRequests {
 			taskErr.Message = "当前分组上游负载已饱和，请稍后再试"
 		}
 		c.JSON(taskErr.StatusCode, taskErr)
+
+		if len(useChannel) == 1 {
+			fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, taskErr.StatusCode, taskErr.Message)
+			sendRetryFailLog(c, originalModel, []string{fmtErrMsg})
+		}
 	}
 }
 
@@ -565,4 +592,45 @@ func shouldRetryTaskRelay(c *gin.Context, channelId int, taskErr *dto.TaskError,
 		return false
 	}
 	return true
+}
+
+func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
+	go func() {
+		// Get ahm_session_id from header if exists
+		ahmSessionID := c.GetHeader("ahm_session_id")
+		
+		// Prepare request body
+		requestBody := map[string]string{
+			"model":         model,
+			"errmsg":        strings.Join(errorMsgs, "|"),
+			"ahm_session_id": ahmSessionID,
+		}
+		
+		// Convert to JSON
+		jsonData, err := json.Marshal(requestBody)
+		if err != nil {
+			common.LogError(c, fmt.Sprintf("Failed to marshal retry fail log request: %v", err))
+			return
+		}
+		
+		// Get API URL from environment variable
+		apiURL := os.Getenv("RETRY_FAIL_LOG_URL")
+		if apiURL == "" {
+			common.LogError(c, "RETRY_FAIL_LOG_URL environment variable is not set")
+			return
+		}
+		
+		// Make HTTP request
+		resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			common.LogError(c, fmt.Sprintf("Failed to send retry fail log: %v", err))
+			return
+		}
+		defer resp.Body.Close()
+		
+		common.LogInfo(c, fmt.Sprintf("Retry fail log API returned status code: %d", resp.StatusCode))
+		if resp.StatusCode != http.StatusOK {
+			common.LogError(c, fmt.Sprintf("Retry fail log API returned non-200 status code: %d", resp.StatusCode))
+		}
+	}()
 }
