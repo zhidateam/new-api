@@ -112,7 +112,11 @@ func Relay(c *gin.Context) {
 			openaiErr.Error.Message = "当前分组上游负载已饱和，请稍后再试"
 		}
 
-		openaiErr.Error.UpstreamError = 1
+		// 打印错误信息
+		common.LogError(c, fmt.Sprintf("local_error: %v", openaiErr.LocalError))
+		if !openaiErr.LocalError {
+			openaiErr.Error.UpstreamError = 1
+		}
 		
 		// 在所有错误响应中添加 channelId
 		openaiErr.Error.ChannelId = lastChannelId
