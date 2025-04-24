@@ -104,10 +104,10 @@ func Relay(c *gin.Context) {
 			break
 		}
 	}
+	// 构建错误信息字符串
+	errorMsgs := []string{}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
-		// 构建错误信息字符串
-		errorMsgs := []string{}
 		// 打印所有的context keys以便调试
 		common.LogInfo(c, fmt.Sprintf("正在获取错误信息，useChannel: %v", useChannel))
 		for _, chIdStr := range useChannel {
@@ -128,9 +128,6 @@ func Relay(c *gin.Context) {
 			retryLogStr = fmt.Sprintf("%s\n汇总错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
 		}
 		common.LogInfo(c, retryLogStr)
-		
-		// Send retry fail log asynchronously
-		sendRetryFailLog(c, originalModel, errorMsgs)
 	}
 
 	if openaiErr != nil {
@@ -153,11 +150,13 @@ func Relay(c *gin.Context) {
 			"error": openaiErr.Error,
 		})
 
-		if len(useChannel) == 1 {
-			fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, openaiErr.StatusCode, openaiErr.Error.Message)
-			sendRetryFailLog(c, originalModel, []string{fmtErrMsg})
-		}
+		
+		fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, openaiErr.StatusCode, openaiErr.Error.Message)
+		errorMsgs = append(errorMsgs, fmtErrMsg)
 	}
+
+	// Send retry fail log asynchronously
+	sendRetryFailLog(c, originalModel, errorMsgs)
 }
 
 var upgrader = websocket.Upgrader{
@@ -264,10 +263,10 @@ func RelayClaude(c *gin.Context) {
 			break
 		}
 	}
+	// 构建错误信息字符串
+	errorMsgs := []string{}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
-		// 构建错误信息字符串
-		errorMsgs := []string{}
 		for _, chIdStr := range useChannel {
 			chId, _ := strconv.Atoi(chIdStr)
 			key := fmt.Sprintf("channel_error_%d", chId)
@@ -281,9 +280,6 @@ func RelayClaude(c *gin.Context) {
 			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
 		}
 		common.LogInfo(c, retryLogStr)
-		
-		// Send retry fail log asynchronously
-		sendRetryFailLog(c, originalModel, errorMsgs)
 	}
 
 	if claudeErr != nil {
@@ -295,11 +291,12 @@ func RelayClaude(c *gin.Context) {
 			"error": claudeErr.Error,
 		})
 
-		if len(useChannel) == 1 {
-			fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, claudeErr.StatusCode, claudeErr.Error.Message)
-			sendRetryFailLog(c, originalModel, []string{fmtErrMsg})
-		}
+		fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, claudeErr.StatusCode, claudeErr.Error.Message)
+		errorMsgs = append(errorMsgs, fmtErrMsg)
 	}
+
+	// Send retry fail log asynchronously
+	sendRetryFailLog(c, originalModel, errorMsgs)
 }
 
 func relayRequest(c *gin.Context, relayMode int, channel *model.Channel) *dto.OpenAIErrorWithStatusCode {
@@ -510,10 +507,10 @@ func RelayTask(c *gin.Context) {
 			c.Set(key, errorMsg)
 		}
 	}
+	// 构建错误信息字符串
+	errorMsgs := []string{}
 	useChannel := c.GetStringSlice("use_channel")
 	if len(useChannel) > 1 {
-		// 构建错误信息字符串
-		errorMsgs := []string{}
 		for _, chIdStr := range useChannel {
 			chId, _ := strconv.Atoi(chIdStr)
 			key := fmt.Sprintf("channel_error_%d", chId)
@@ -527,9 +524,6 @@ func RelayTask(c *gin.Context) {
 			retryLogStr = fmt.Sprintf("%s\n错误信息：%s", retryLogStr, strings.Join(errorMsgs, "\n"))
 		}
 		common.LogInfo(c, retryLogStr)
-		
-		// Send retry fail log asynchronously
-		sendRetryFailLog(c, originalModel, errorMsgs)
 	}
 	if taskErr != nil {
 		if taskErr.StatusCode == http.StatusTooManyRequests {
@@ -537,11 +531,11 @@ func RelayTask(c *gin.Context) {
 		}
 		c.JSON(taskErr.StatusCode, taskErr)
 
-		if len(useChannel) == 1 {
-			fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, taskErr.StatusCode, taskErr.Message)
-			sendRetryFailLog(c, originalModel, []string{fmtErrMsg})
-		}
+		fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", channelId, taskErr.StatusCode, taskErr.Message)
+		errorMsgs = append(errorMsgs, fmtErrMsg)
 	}
+	// Send retry fail log asynchronously
+	sendRetryFailLog(c, originalModel, errorMsgs)
 }
 
 func taskRelayHandler(c *gin.Context, relayMode int) *dto.TaskError {
