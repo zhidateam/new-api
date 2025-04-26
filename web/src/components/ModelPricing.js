@@ -398,19 +398,6 @@ const ModelPricing = () => {
           closeIcon="null"
         />
         <br/>
-        <Banner
-          type="info"
-          fullMode={false}
-          description={
-            <span>
-              {t('如果不知道怎么选择模型，可以参考 ')}
-              <a href="http://www.aihubmax.com/udocs/popular-models" target="_blank" rel="noopener noreferrer">{t('常用模型')}</a>
-              {t(' 快速选择')}
-            </span>
-          }
-          closeIcon="null"
-        />
-        <br />
         <Space style={{ marginBottom: 16 }}>
           <Input
             placeholder={t('模糊搜索模型名称')}
