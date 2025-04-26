@@ -24,6 +24,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
+
 func relayHandler(c *gin.Context, relayMode int) *dto.OpenAIErrorWithStatusCode {
 	var err *dto.OpenAIErrorWithStatusCode
 	switch relayMode {
@@ -364,7 +365,8 @@ func shouldRetry(c *gin.Context, openaiErr *dto.OpenAIErrorWithStatusCode, retry
 	}
 	return true
 }
-//aihubmax
+
+// aihubmax
 func processChannelError(c *gin.Context, channelId int, channelType int, channelName string, autoBan bool, err *dto.OpenAIErrorWithStatusCode) string {
 	// 不要使用context获取渠道信息，异步处理时可能会出现渠道信息不一致的情况
 	// do not use context to get channel info, there may be inconsistent channel info when processing asynchronously
@@ -380,7 +382,7 @@ func processChannelError(c *gin.Context, channelId int, channelType int, channel
 	return errorMsg
 }
 
-//aihubmax begin
+// aihubmax begin
 func RelayMidjourney(c *gin.Context) {
 	relayMode := c.GetInt("relay_mode")
 	var err *dto.MidjourneyResponse
@@ -480,7 +482,7 @@ func RelayTask(c *gin.Context) {
 			key := fmt.Sprintf("channel_error_%d", channelId)
 			common.LogInfo(c, fmt.Sprintf("存储错误信息到key: %s, 错误信息: %s", key, errorMsg))
 			c.Set(key, errorMsg)
-		
+		}
 	}
 	// 构建错误信息字符串
 	errorMsgs := []string{}
@@ -512,6 +514,7 @@ func RelayTask(c *gin.Context) {
 	// Send retry fail log asynchronously
 	sendRetryFailLog(c, originalModel, errorMsgs)
 }
+
 //aihubmax end
 
 func taskRelayHandler(c *gin.Context, relayMode int) *dto.TaskError {
@@ -563,7 +566,8 @@ func shouldRetryTaskRelay(c *gin.Context, channelId int, taskErr *dto.TaskError,
 	}
 	return true
 }
-//aihubmax发送失败记录接口
+
+// aihubmax发送失败记录接口
 func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
 	go func() {
 		// Get ahm_session_id from header if exists
