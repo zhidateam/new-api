@@ -26,6 +26,7 @@ export default function GeneralSettings(props) {
     TopUpLink: '',
     'general_setting.docs_link': '',
     'general_setting.customer_service_link': '',
+    'general_setting.customer_service_link': '',
     QuotaPerUnit: '',
     RetryTimes: '',
     DisplayInCurrencyEnabled: false,
@@ -133,17 +134,7 @@ export default function GeneralSettings(props) {
                   label={t('客服地址')}
                   initValue={''}
                   placeholder={t('例如 https://www.aihubmax.com/udocs/kf')}
-                  onChange={handleFieldChange('general_setting.docs_link')}
-                  showClear
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-                <Form.Input
-                  field={'general_setting.customer_service_link'}
-                  label={t('客服地址')}
-                  initValue={''}
-                  placeholder={t('例如 https://www.aihubmax.com/udocs/kf')}
-                  onChange={onChange}
+                  onChange={handleFieldChange('general_setting.customer_service_link')}
                   showClear
                 />
               </Col>

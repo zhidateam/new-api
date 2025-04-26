@@ -146,7 +146,6 @@ const HeaderBar = () => {
     },
     {
       text: t('模型列表'),
-      text: t('模型列表'),
       itemKey: 'pricing',
       to: '/pricing',
       icon: <IconPriceTag style={headerIconStyle} />,

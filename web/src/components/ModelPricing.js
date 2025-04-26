@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useRef, useMemo, useState } from 'react';
 import { API, copy, showError, showInfo, showSuccess } from '../helpers';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 
 import {
   Banner,
