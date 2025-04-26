@@ -590,8 +590,8 @@ func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
 		// Get API URL from environment variable
 		apiURL := os.Getenv("RETRY_FAIL_LOG_URL")
 		if apiURL == "" {
-			common.LogError(c, "RETRY_FAIL_LOG_URL environment variable is not set")
-			return
+			apiURL = "https://aihubmax.com/ext/retry_fail_log"
+			common.LogInfo(c, "RETRY_FAIL_LOG_URL not set, using default: "+apiURL)
 		}
 
 		// Make HTTP request
