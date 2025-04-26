@@ -37,7 +37,7 @@ const TopUp = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [payWay, setPayWay] = useState('');
-  const [usdToRmbPrice, setUsdToRmbPrice] = useState(0);
+  const [usdToRmbPrice, setUsdToRmbPrice] = useState(0);//aihubmax
 
   const topUp = async () => {
     if (redemptionCode === '') {
@@ -171,7 +171,7 @@ const TopUp = () => {
       if (status.enable_online_topup) {
         setEnableOnlineTopUp(status.enable_online_topup);
       }
-      if (status.price) {
+      if (status.price) {//aihubmax
         setUsdToRmbPrice(status.price);
       }
     }
@@ -284,6 +284,7 @@ const TopUp = () => {
               <div style={{ marginTop: 20 }}>
                 <Divider>{t('在线充值')}</Divider>
                 <Form>
+                <!--aihubmax-->
                   <Form.Input
                     disabled={!enableOnlineTopUp}
                     field={'redemptionCount'}

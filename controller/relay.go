@@ -24,7 +24,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
-
 func relayHandler(c *gin.Context, relayMode int) *dto.OpenAIErrorWithStatusCode {
 	var err *dto.OpenAIErrorWithStatusCode
 	switch relayMode {
@@ -46,41 +45,13 @@ func relayHandler(c *gin.Context, relayMode int) *dto.OpenAIErrorWithStatusCode 
 	return err
 }
 
-// 判断是否是大模型返回的欠费错误
-func isInsufficientQuotaError(err *dto.OpenAIErrorWithStatusCode) bool {
-	if err == nil {
-		return false
-	}
-
-	// 检查错误消息中是否包含欠费相关的关键词
-	lowerMsg := strings.ToLower(err.Error.Message)
-	quotaKeywords := []string{
-		"insufficient_quota",
-		"insufficient funds",
-		"insufficient balance",
-		"quota exceeded",
-		"balance insufficient",
-		"tokenstatusexhausted",
-		"账户余额不足",
-		"余额不足",
-		"欠费",
-	}
-
-	for _, keyword := range quotaKeywords {
-		if strings.Contains(lowerMsg, keyword) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func Relay(c *gin.Context) {
 	relayMode := constant.Path2RelayMode(c.Request.URL.Path)
 	requestId := c.GetString(common.RequestIdKey)
 	group := c.GetString("group")
 	originalModel := c.GetString("original_model")
 	var openaiErr *dto.OpenAIErrorWithStatusCode
+	//aihubmax begin
 	var lastChannelId int
 
 	for i := 0; i <= common.RetryTimes; i++ {
@@ -150,13 +121,13 @@ func Relay(c *gin.Context) {
 			"error": openaiErr.Error,
 		})
 
-		
 		fmtErrMsg := fmt.Sprintf("relay error (channel #%d, status code: %d): %s", lastChannelId, openaiErr.StatusCode, openaiErr.Error.Message)
 		errorMsgs = append(errorMsgs, fmtErrMsg)
 	}
 
 	// Send retry fail log asynchronously
 	sendRetryFailLog(c, originalModel, errorMsgs)
+	//aihubmax end
 }
 
 var upgrader = websocket.Upgrader{
@@ -184,7 +155,7 @@ func WssRelay(c *gin.Context) {
 	//wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01
 	originalModel := c.GetString("original_model")
 	var openaiErr *dto.OpenAIErrorWithStatusCode
-
+	//aihubmax begin
 	for i := 0; i <= common.RetryTimes; i++ {
 		channel, err := getChannel(c, group, originalModel, i)
 		if err != nil {
@@ -223,6 +194,7 @@ func WssRelay(c *gin.Context) {
 		}
 		common.LogInfo(c, retryLogStr)
 	}
+	//aihubmax end
 
 	if openaiErr != nil {
 		if openaiErr.StatusCode == http.StatusTooManyRequests {
@@ -238,6 +210,7 @@ func RelayClaude(c *gin.Context) {
 	group := c.GetString("group")
 	originalModel := c.GetString("original_model")
 	var claudeErr *dto.ClaudeErrorWithStatusCode
+	//aihubmax begin
 	var lastChannelId int
 
 	for i := 0; i <= common.RetryTimes; i++ {
@@ -297,6 +270,7 @@ func RelayClaude(c *gin.Context) {
 
 	// Send retry fail log asynchronously
 	sendRetryFailLog(c, originalModel, errorMsgs)
+	//aihubmax end
 }
 
 func relayRequest(c *gin.Context, relayMode int, channel *model.Channel) *dto.OpenAIErrorWithStatusCode {
@@ -390,7 +364,7 @@ func shouldRetry(c *gin.Context, openaiErr *dto.OpenAIErrorWithStatusCode, retry
 	}
 	return true
 }
-
+//aihubmax
 func processChannelError(c *gin.Context, channelId int, channelType int, channelName string, autoBan bool, err *dto.OpenAIErrorWithStatusCode) string {
 	// 不要使用context获取渠道信息，异步处理时可能会出现渠道信息不一致的情况
 	// do not use context to get channel info, there may be inconsistent channel info when processing asynchronously
@@ -406,6 +380,7 @@ func processChannelError(c *gin.Context, channelId int, channelType int, channel
 	return errorMsg
 }
 
+//aihubmax begin
 func RelayMidjourney(c *gin.Context) {
 	relayMode := c.GetInt("relay_mode")
 	var err *dto.MidjourneyResponse
@@ -505,7 +480,7 @@ func RelayTask(c *gin.Context) {
 			key := fmt.Sprintf("channel_error_%d", channelId)
 			common.LogInfo(c, fmt.Sprintf("存储错误信息到key: %s, 错误信息: %s", key, errorMsg))
 			c.Set(key, errorMsg)
-		}
+		
 	}
 	// 构建错误信息字符串
 	errorMsgs := []string{}
@@ -537,6 +512,7 @@ func RelayTask(c *gin.Context) {
 	// Send retry fail log asynchronously
 	sendRetryFailLog(c, originalModel, errorMsgs)
 }
+//aihubmax end
 
 func taskRelayHandler(c *gin.Context, relayMode int) *dto.TaskError {
 	var err *dto.TaskError
@@ -587,33 +563,33 @@ func shouldRetryTaskRelay(c *gin.Context, channelId int, taskErr *dto.TaskError,
 	}
 	return true
 }
-
+//aihubmax发送失败记录接口
 func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
 	go func() {
 		// Get ahm_session_id from header if exists
 		ahmSessionID := c.GetHeader("ahm_session_id")
-		
+
 		// Prepare request body
 		requestBody := map[string]string{
-			"model":         model,
-			"errmsg":        strings.Join(errorMsgs, "|"),
+			"model":          model,
+			"errmsg":         strings.Join(errorMsgs, "|"),
 			"ahm_session_id": ahmSessionID,
 		}
-		
+
 		// Convert to JSON
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {
 			common.LogError(c, fmt.Sprintf("Failed to marshal retry fail log request: %v", err))
 			return
 		}
-		
+
 		// Get API URL from environment variable
 		apiURL := os.Getenv("RETRY_FAIL_LOG_URL")
 		if apiURL == "" {
 			common.LogError(c, "RETRY_FAIL_LOG_URL environment variable is not set")
 			return
 		}
-		
+
 		// Make HTTP request
 		resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
@@ -621,7 +597,7 @@ func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
 			return
 		}
 		defer resp.Body.Close()
-		
+
 		common.LogInfo(c, fmt.Sprintf("Retry fail log API returned status code: %d", resp.StatusCode))
 		if resp.StatusCode != http.StatusOK {
 			common.LogError(c, fmt.Sprintf("Retry fail log API returned non-200 status code: %d", resp.StatusCode))

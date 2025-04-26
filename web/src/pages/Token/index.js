@@ -1,17 +1,18 @@
-import React, { useContext } from 'react';
+import React, { useContext } from 'react';//aihubmax
 import TokensTable from '../../components/TokensTable';
 import { Banner, Layout } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
-import { StatusContext } from '../../context/Status';
+import { StatusContext } from '../../context/Status';//aihubmax
 
 const Token = () => {
   const { t } = useTranslation();
-  const [statusState] = useContext(StatusContext);
+  const [statusState] = useContext(StatusContext);//aihubmax
 
   return (
     <>
       <Layout>
         <Layout.Header>
+        <!--aihubmax-->
           <Banner
             type='warning'
             description={t('令牌无法精确控制使用额度，只允许自用，请勿直接将令牌分发给他人。')}

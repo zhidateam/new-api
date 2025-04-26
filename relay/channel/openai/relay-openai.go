@@ -118,6 +118,7 @@ func OaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 
 	var responseTextBuilder strings.Builder
 	var toolCount int
+	//aihubmax
 	var usage = &dto.Usage{
 		ChannelId: info.ChannelId,
 	}

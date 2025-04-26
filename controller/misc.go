@@ -57,6 +57,7 @@ func GetStatus(c *gin.Context) {
 			"turnstile_site_key":          common.TurnstileSiteKey,
 			"top_up_link":                 common.TopUpLink,
 			"docs_link":                   operation_setting.GetGeneralSetting().DocsLink,
+			//aihubmax
 			"customer_service_link":       operation_setting.GetGeneralSetting().CustomerServiceLink,
 			"quota_per_unit":              common.QuotaPerUnit,
 			"display_in_currency":         common.DisplayInCurrencyEnabled,

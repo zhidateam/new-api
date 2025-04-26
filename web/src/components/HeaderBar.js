@@ -25,6 +25,7 @@ import {
   IconInfoCircle,
   IconCreditCard,
   IconTerminal,
+	//aihubmax
   IconCustomerSupport
 } from '@douyinfe/semi-icons';
 import {
@@ -126,6 +127,7 @@ const HeaderBar = () => {
   // Check if self-use mode is enabled
   const isSelfUseMode = statusState?.status?.self_use_mode_enabled || false;
   const docsLink = statusState?.status?.docs_link || '';
+	//aihubmax
   const customerServiceLink = statusState?.status?.customer_service_link || '';
   const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
 
@@ -143,7 +145,7 @@ const HeaderBar = () => {
       icon: <IconTerminal style={headerIconStyle} />,
     },
     {
-      text: t('模型列表'),
+      text: t('模型列表'),//aihubmax
       itemKey: 'pricing',
       to: '/pricing',
       icon: <IconPriceTag style={headerIconStyle} />,
@@ -166,6 +168,7 @@ const HeaderBar = () => {
       to: '/about',
       icon: <IconInfoCircle style={headerIconStyle} />,
     },
+	  //aihubmax
     {
       text: t('客服'),
       itemKey: 'customer_service',
@@ -253,7 +256,7 @@ const HeaderBar = () => {
                 detail: '/detail',
                 home: '/',
                 chat: '/chat',
-                customer_service: '/udocs/kf',
+                customer_service: '/udocs/kf',//aihubmax
               };
               return (
                 <div

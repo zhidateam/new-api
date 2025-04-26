@@ -5,6 +5,7 @@ type OpenAIError struct {
 	Type          string `json:"type"`
 	Param         string `json:"param"`
 	Code          any    `json:"code"`
+	//aihubmax
 	ChannelId     int    `json:"channel_id,omitempty"`
 	UpstreamError int    `json:"upstream_error,omitempty"`
 }

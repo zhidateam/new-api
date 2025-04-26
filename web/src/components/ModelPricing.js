@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useMemo, useState } from 'react';
 import { API, copy, showError, showInfo, showSuccess } from '../helpers';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';//aihubmax
 
 import {
   Banner,
@@ -33,7 +33,7 @@ const ModelPricing = () => {
   const [modalImageUrl, setModalImageUrl] = useState('');
   const [isModalOpenurl, setIsModalOpenurl] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState('default');
-  const [usdToRmbPrice, setUsdToRmbPrice] = useState(0);
+  const [usdToRmbPrice, setUsdToRmbPrice] = useState(0);//aihubmax
 
   const rowSelection = useMemo(
     () => ({
@@ -378,6 +378,7 @@ const ModelPricing = () => {
           />
         )}
         <br/>
+        <!--aihubmax begin-->
         <Banner
             type="info"
             fullMode={false}
@@ -397,6 +398,7 @@ const ModelPricing = () => {
           }
           closeIcon="null"
         />
+        <!--aihubmax end-->
         <br/>
         <Space style={{ marginBottom: 16 }}>
           <Input

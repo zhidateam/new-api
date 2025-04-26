@@ -173,6 +173,7 @@ func (c *ClaudeRequest) ParseSystem() []ClaudeMediaMessage {
 type ClaudeError struct {
 	Type      string `json:"type,omitempty"`
 	Message   string `json:"message,omitempty"`
+	//aihubmax
 	ChannelId int    `json:"channel_id,omitempty"`
 }
 

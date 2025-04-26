@@ -30,14 +30,14 @@ const EditToken = (props) => {
   const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(isEdit);
   const originInputs = {
-    name: '我的API',
+    name: '我的API',//aihubmax
     remain_quota: isEdit ? 0 : 500000,
     expired_time: -1,
-    unlimited_quota: true,
+    unlimited_quota: true,//aihubmax
     model_limits_enabled: false,
     model_limits: [],
     allow_ips: '',
-    group: 'default',
+    group: 'default',//aihubmax
   };
   const [inputs, setInputs] = useState(originInputs);
   const {

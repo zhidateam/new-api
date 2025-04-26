@@ -25,8 +25,8 @@ export default function GeneralSettings(props) {
   const [inputs, setInputs] = useState({
     TopUpLink: '',
     'general_setting.docs_link': '',
-    'general_setting.customer_service_link': '',
-    'general_setting.customer_service_link': '',
+    'general_setting.customer_service_link': '',//aihubmax
+    'general_setting.customer_service_link': '',//aihubmax
     QuotaPerUnit: '',
     RetryTimes: '',
     DisplayInCurrencyEnabled: false,
@@ -129,6 +129,7 @@ export default function GeneralSettings(props) {
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+              <!--aihubmax-->
                 <Form.Input
                   field={'general_setting.customer_service_link'}
                   label={t('客服地址')}
