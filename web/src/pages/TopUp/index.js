@@ -284,7 +284,7 @@ const TopUp = () => {
               <div style={{ marginTop: 20 }}>
                 <Divider>{t('在线充值')}</Divider>
                 <Form>
-                <!--aihubmax-->
+                {/* aihubmax begin */}
                   <Form.Input
                     disabled={!enableOnlineTopUp}
                     field={'redemptionCount'}
@@ -323,6 +323,7 @@ const TopUp = () => {
               {/*        }>充值记录</Link>*/}
               {/*    </Text>*/}
               {/*</div>*/}
+        {/* aihubmax end */}
             </Card>
           </div>
         </Layout.Content>

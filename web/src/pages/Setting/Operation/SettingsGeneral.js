@@ -129,7 +129,7 @@ export default function GeneralSettings(props) {
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
-              <!--aihubmax-->
+              {/* aihubmax */}
                 <Form.Input
                   field={'general_setting.customer_service_link'}
                   label={t('客服地址')}

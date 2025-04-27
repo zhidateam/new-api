@@ -378,7 +378,7 @@ const ModelPricing = () => {
           />
         )}
         <br/>
-        <!--aihubmax begin-->
+        {/* aihubmax begin */}
         <Banner
             type="info"
             fullMode={false}
@@ -398,7 +398,7 @@ const ModelPricing = () => {
           }
           closeIcon="null"
         />
-        <!--aihubmax end-->
+        {/* aihubmax end */}
         <br/>
         <Space style={{ marginBottom: 16 }}>
           <Input
