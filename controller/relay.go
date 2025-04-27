@@ -583,7 +583,7 @@ func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
 		// Convert to JSON
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {
-			common.LogError(c, fmt.Sprintf("Failed to marshal retry fail log request: %v", err))
+			common.LogError(c, fmt.Sprintf("sendRetryFailLog序列化重试失败日志请求失败: %v", err))
 			return
 		}
 
@@ -591,20 +591,20 @@ func sendRetryFailLog(c *gin.Context, model string, errorMsgs []string) {
 		apiURL := os.Getenv("RETRY_FAIL_LOG_URL")
 		if apiURL == "" {
 			apiURL = "https://aihubmax.com/ext/retry_fail_log"
-			common.LogInfo(c, "RETRY_FAIL_LOG_URL not set, using default: "+apiURL)
+			common.LogInfo(c, "sendRetryFailLog未设置RETRY_FAIL_LOG_URL环境变量，使用默认值: "+apiURL)
 		}
 
 		// Make HTTP request
 		resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
-			common.LogError(c, fmt.Sprintf("Failed to send retry fail log: %v", err))
+			common.LogError(c, fmt.Sprintf("sendRetryFailLog发送重试失败日志失败: %v", err))
 			return
 		}
 		defer resp.Body.Close()
 
-		common.LogInfo(c, fmt.Sprintf("Retry fail log API returned status code: %d", resp.StatusCode))
+		common.LogInfo(c, fmt.Sprintf("sendRetryFailLog重试失败日志API返回状态码: %d", resp.StatusCode))
 		if resp.StatusCode != http.StatusOK {
-			common.LogError(c, fmt.Sprintf("Retry fail log API returned non-200 status code: %d", resp.StatusCode))
+			common.LogError(c, fmt.Sprintf("sendRetryFailLog重试失败日志API返回非200状态码: %d", resp.StatusCode))
 		}
 	}()
 }
