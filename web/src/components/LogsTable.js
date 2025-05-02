@@ -129,7 +129,18 @@ const LogsTable = () => {
   }
 
   function renderUseTime(type) {
+    // aihubmax: 如果type不存在或无法解析为数字，则不显示任何内容
+    if (!type || isNaN(parseInt(type))) {
+      return null; // 不显示任何内容
+    } // aihubmax
+
     const time = parseInt(type);
+
+    // aihubmax: 如果计算结果是NaN，则不显示任何内容
+    if (isNaN(time)) {
+      return null;
+    } // aihubmax
+
     if (time < 101) {
       return (
         <Tag color='green' size='large'>
@@ -155,8 +166,19 @@ const LogsTable = () => {
   }
 
   function renderFirstUseTime(type) {
+    // aihubmax: 如果type不存在或无法解析为数字，则不显示任何内容
+    if (!type || isNaN(parseFloat(type))) {
+      return null; // 不显示任何内容
+    } // aihubmax
+
     let time = parseFloat(type) / 1000.0;
     time = time.toFixed(1);
+
+    // aihubmax: 如果计算结果是NaN，则不显示任何内容
+    if (isNaN(time)) {
+      return null;
+    } // aihubmax
+
     if (time < 3) {
       return (
         <Tag color='green' size='large'>
@@ -932,25 +954,34 @@ const LogsTable = () => {
         });
       }
       if (logs[i].type === 2) {
-        expandDataLocal.push({
-          key: t('日志详情'),
-          value: other?.claude
-            ? renderClaudeLogContent(
-              other?.model_ratio,
-              other.completion_ratio,
-              other.model_price,
-              other.group_ratio,
-              other.cache_ratio || 1.0,
-              other.cache_creation_ratio || 1.0,
-            )
-            : renderLogContent(
-              other?.model_ratio,
-              other.completion_ratio,
-              other.model_price,
-              other.group_ratio,
-              other?.user_group_ratio,
-            ),
-        });
+        // aihubmax: 如果是消费记录且content不为空，则显示content内容，否则显示模型倍率信息
+        if (logs[i].content && logs[i].content.trim() !== '') { // aihubmax
+          expandDataLocal.push({
+            key: t('日志详情'),
+            value: logs[i].content,
+          });
+        } else if ((logs[i].prompt_tokens && parseInt(logs[i].prompt_tokens) > 0) ||
+          (logs[i].completion_tokens && parseInt(logs[i].completion_tokens) > 0)) { // aihubmax
+          expandDataLocal.push({
+            key: t('日志详情'),
+            value: other?.claude
+              ? renderClaudeLogContent(
+                other?.model_ratio,
+                other.completion_ratio,
+                other.model_price,
+                other.group_ratio,
+                other.cache_ratio || 1.0,
+                other.cache_creation_ratio || 1.0,
+              )
+              : renderLogContent(
+                other?.model_ratio,
+                other.completion_ratio,
+                other.model_price,
+                other.group_ratio,
+                other?.user_group_ratio,
+              ),
+          });
+        } // aihubmax
       }
       if (logs[i].type === 2) {
         let modelMapped =
