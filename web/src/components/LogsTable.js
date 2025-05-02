@@ -193,7 +193,7 @@ const LogsTable = () => {
           color={stringToColor(record.model_name)}
           size='large'
           onClick={(event) => {
-            copyText(event, record.model_name).then((r) => {});
+            copyText(event, record.model_name).then((r) => { });
           }}
         >
           {' '}
@@ -212,7 +212,7 @@ const LogsTable = () => {
                       color={stringToColor(record.model_name)}
                       size='large'
                       onClick={(event) => {
-                        copyText(event, record.model_name).then((r) => {});
+                        copyText(event, record.model_name).then((r) => { });
                       }}
                     >
                       {t('请求并计费模型')} {record.model_name}{' '}
@@ -222,7 +222,7 @@ const LogsTable = () => {
                       size='large'
                       onClick={(event) => {
                         copyText(event, other.upstream_model_name).then(
-                          (r) => {},
+                          (r) => { },
                         );
                       }}
                     >
@@ -236,7 +236,7 @@ const LogsTable = () => {
                 color={stringToColor(record.model_name)}
                 size='large'
                 onClick={(event) => {
-                  copyText(event, record.model_name).then((r) => {});
+                  copyText(event, record.model_name).then((r) => { });
                 }}
                 suffixIcon={
                   <IconRefresh
@@ -596,7 +596,8 @@ const LogsTable = () => {
       dataIndex: 'content',
       render: (text, record, index) => {
         let other = getLogOther(record.other);
-        if (other == null || record.type !== 2) {
+        // aihubmax: 如果不是消费记录，或者是渠道为0且content不为空的消费记录，直接显示content
+        if (other == null || record.type !== 2 || (record.channel === 0 && text && text.trim() !== '')) { // aihubmax
           return (
             <Paragraph
               ellipsis={{
@@ -613,23 +614,41 @@ const LogsTable = () => {
           );
         }
 
+        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在），则不显示计费过程
+        if (!record.prompt_tokens && !record.completion_tokens) { // aihubmax
+          return (
+            <Paragraph
+              ellipsis={{
+                rows: 2,
+                showTooltip: {
+                  type: 'popover',
+                  opts: { style: { width: 240 } },
+                },
+              }}
+              style={{ maxWidth: 240 }}
+            >
+              {text || t('无token信息')}
+            </Paragraph>
+          );
+        }
+
         let content = other?.claude
           ? renderClaudeModelPriceSimple(
-              other.model_ratio,
-              other.model_price,
-              other.group_ratio,
-              other.cache_tokens || 0,
-              other.cache_ratio || 1.0,
-              other.cache_creation_tokens || 0,
-              other.cache_creation_ratio || 1.0,
-            )
+            other.model_ratio,
+            other.model_price,
+            other.group_ratio,
+            other.cache_tokens || 0,
+            other.cache_ratio || 1.0,
+            other.cache_creation_tokens || 0,
+            other.cache_creation_ratio || 1.0,
+          )
           : renderModelPriceSimple(
-              other.model_ratio,
-              other.model_price,
-              other.group_ratio,
-              other.cache_tokens || 0,
-              other.cache_ratio || 1.0,
-            );
+            other.model_ratio,
+            other.model_price,
+            other.group_ratio,
+            other.cache_tokens || 0,
+            other.cache_ratio || 1.0,
+          );
         return (
           <Paragraph
             ellipsis={{
@@ -916,20 +935,20 @@ const LogsTable = () => {
           key: t('日志详情'),
           value: other?.claude
             ? renderClaudeLogContent(
-                other?.model_ratio,
-                other.completion_ratio,
-                other.model_price,
-                other.group_ratio,
-                other.cache_ratio || 1.0,
-                other.cache_creation_ratio || 1.0,
-              )
+              other?.model_ratio,
+              other.completion_ratio,
+              other.model_price,
+              other.group_ratio,
+              other.cache_ratio || 1.0,
+              other.cache_creation_ratio || 1.0,
+            )
             : renderLogContent(
-                other?.model_ratio,
-                other.completion_ratio,
-                other.model_price,
-                other.group_ratio,
-                other?.user_group_ratio,
-              ),
+              other?.model_ratio,
+              other.completion_ratio,
+              other.model_price,
+              other.group_ratio,
+              other?.user_group_ratio,
+            ),
         });
       }
       if (logs[i].type === 2) {
@@ -947,53 +966,56 @@ const LogsTable = () => {
             value: other.upstream_model_name,
           });
         }
-        let content = '';
-        if (other?.ws || other?.audio) {
-          content = renderAudioModelPrice(
-            other?.text_input,
-            other?.text_output,
-            other?.model_ratio,
-            other?.model_price,
-            other?.completion_ratio,
-            other?.audio_input,
-            other?.audio_output,
-            other?.audio_ratio,
-            other?.audio_completion_ratio,
-            other?.group_ratio,
-            other?.cache_tokens || 0,
-            other?.cache_ratio || 1.0,
-          );
-        } else if (other?.claude) {
-          content = renderClaudeModelPrice(
-            logs[i].prompt_tokens,
-            logs[i].completion_tokens,
-            other.model_ratio,
-            other.model_price,
-            other.completion_ratio,
-            other.group_ratio,
-            other.cache_tokens || 0,
-            other.cache_ratio || 1.0,
-            other.cache_creation_tokens || 0,
-            other.cache_creation_ratio || 1.0,
-          );
-        } else {
-          content = renderModelPrice(
-            logs[i].prompt_tokens,
-            logs[i].completion_tokens,
-            other?.model_ratio,
-            other?.model_price,
-            other?.completion_ratio,
-            other?.group_ratio,
-            other?.cache_tokens || 0,
-            other?.cache_ratio || 1.0,
-          other?.image || false,
+        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在），则不显示计费过程
+        if (logs[i].prompt_tokens || logs[i].completion_tokens) { // aihubmax
+          let content = '';
+          if (other?.ws || other?.audio) {
+            content = renderAudioModelPrice(
+              other?.text_input,
+              other?.text_output,
+              other?.model_ratio,
+              other?.model_price,
+              other?.completion_ratio,
+              other?.audio_input,
+              other?.audio_output,
+              other?.audio_ratio,
+              other?.audio_completion_ratio,
+              other?.group_ratio,
+              other?.cache_tokens || 0,
+              other?.cache_ratio || 1.0,
+            );
+          } else if (other?.claude) {
+            content = renderClaudeModelPrice(
+              logs[i].prompt_tokens,
+              logs[i].completion_tokens,
+              other.model_ratio,
+              other.model_price,
+              other.completion_ratio,
+              other.group_ratio,
+              other.cache_tokens || 0,
+              other.cache_ratio || 1.0,
+              other.cache_creation_tokens || 0,
+              other.cache_creation_ratio || 1.0,
+            );
+          } else {
+            content = renderModelPrice(
+              logs[i].prompt_tokens,
+              logs[i].completion_tokens,
+              other?.model_ratio,
+              other?.model_price,
+              other?.completion_ratio,
+              other?.group_ratio,
+              other?.cache_tokens || 0,
+              other?.cache_ratio || 1.0,
+              other?.image || false,
               other?.image_ratio || 0,
               other?.image_output || 0,);
-        }
-        expandDataLocal.push({
-          key: t('计费过程'),
-          value: content,
-        });
+          }
+          expandDataLocal.push({
+            key: t('计费过程'),
+            value: content,
+          });
+        } // aihubmax
         if (other?.reasoning_effort) {
           expandDataLocal.push({
             key: t('Reasoning Effort'),
@@ -1037,7 +1059,7 @@ const LogsTable = () => {
 
   const handlePageChange = (page) => {
     setActivePage(page);
-    loadLogs(page, pageSize, logType).then((r) => {});
+    loadLogs(page, pageSize, logType).then((r) => { });
   };
 
   const handlePageSizeChange = async (size) => {
