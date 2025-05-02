@@ -240,6 +240,11 @@ func OpenaiHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayI
 	for k, v := range resp.Header {
 		c.Writer.Header().Set(k, v[0])
 	}
+	// Aihubmax响应头加入渠道id
+	channelId := c.GetInt("channel_id")
+	if channelId > 0 {
+		c.Writer.Header().Set("x-channel-id", fmt.Sprintf("%d", channelId))
+	}
 	c.Writer.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(c.Writer, resp.Body)
 	if err != nil {
@@ -280,6 +285,11 @@ func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 	for k, v := range resp.Header {
 		c.Writer.Header().Set(k, v[0])
 	}
+	// Aihubmax响应头加入渠道id
+	channelId := c.GetInt("channel_id")
+	if channelId > 0 {
+		c.Writer.Header().Set("x-channel-id", fmt.Sprintf("%d", channelId))
+	}
 	c.Writer.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(c.Writer, resp.Body)
 	if err != nil {
@@ -318,6 +328,11 @@ func OpenaiSTTHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 	// For example, Postman will report error, and we cannot check the response at all.
 	for k, v := range resp.Header {
 		c.Writer.Header().Set(k, v[0])
+	}
+	// Aihubmax响应头加入渠道id
+	channelId := c.GetInt("channel_id")
+	if channelId > 0 {
+		c.Writer.Header().Set("x-channel-id", fmt.Sprintf("%d", channelId))
 	}
 	c.Writer.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(c.Writer, resp.Body)
@@ -616,6 +631,11 @@ func OpenaiHandlerWithUsage(c *gin.Context, resp *http.Response, info *relaycomm
 	// For example, Postman will report error, and we cannot check the response at all.
 	for k, v := range resp.Header {
 		c.Writer.Header().Set(k, v[0])
+	}
+	// Aihubmax响应头加入渠道id
+	channelId := c.GetInt("channel_id")
+	if channelId > 0 {
+		c.Writer.Header().Set("x-channel-id", fmt.Sprintf("%d", channelId))
 	}
 	// reset content length
 	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", len(responseBody)))
