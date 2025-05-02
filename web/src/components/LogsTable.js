@@ -614,8 +614,9 @@ const LogsTable = () => {
           );
         }
 
-        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在），则不显示计费过程
-        if (!record.prompt_tokens && !record.completion_tokens) { // aihubmax
+        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在或为0），则不显示计费过程
+        if (!record.prompt_tokens && !record.completion_tokens ||
+          (parseInt(record.prompt_tokens) === 0 && parseInt(record.completion_tokens) === 0)) { // aihubmax
           return (
             <Paragraph
               ellipsis={{
@@ -966,8 +967,9 @@ const LogsTable = () => {
             value: other.upstream_model_name,
           });
         }
-        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在），则不显示计费过程
-        if (logs[i].prompt_tokens || logs[i].completion_tokens) { // aihubmax
+        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在或为0），则不显示计费过程
+        if ((logs[i].prompt_tokens && parseInt(logs[i].prompt_tokens) > 0) ||
+          (logs[i].completion_tokens && parseInt(logs[i].completion_tokens) > 0)) { // aihubmax
           let content = '';
           if (other?.ws || other?.audio) {
             content = renderAudioModelPrice(
