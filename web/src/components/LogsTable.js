@@ -129,7 +129,18 @@ const LogsTable = () => {
   }
 
   function renderUseTime(type) {
+    // aihubmax: 如果type不存在或无法解析为数字，则不显示任何内容
+    if (!type || isNaN(parseInt(type))) {
+      return null; // 不显示任何内容
+    } // aihubmax
+
     const time = parseInt(type);
+
+    // aihubmax: 如果计算结果是NaN，则不显示任何内容
+    if (isNaN(time)) {
+      return null;
+    } // aihubmax
+
     if (time < 101) {
       return (
         <Tag color='green' size='large'>
@@ -155,8 +166,19 @@ const LogsTable = () => {
   }
 
   function renderFirstUseTime(type) {
+    // aihubmax: 如果type不存在或无法解析为数字，则不显示任何内容
+    if (!type || isNaN(parseFloat(type))) {
+      return null; // 不显示任何内容
+    } // aihubmax
+
     let time = parseFloat(type) / 1000.0;
     time = time.toFixed(1);
+
+    // aihubmax: 如果计算结果是NaN，则不显示任何内容
+    if (isNaN(time)) {
+      return null;
+    } // aihubmax
+
     if (time < 3) {
       return (
         <Tag color='green' size='large'>
@@ -193,7 +215,7 @@ const LogsTable = () => {
           color={stringToColor(record.model_name)}
           size='large'
           onClick={(event) => {
-            copyText(event, record.model_name).then((r) => {});
+            copyText(event, record.model_name).then((r) => { });
           }}
         >
           {' '}
@@ -212,7 +234,7 @@ const LogsTable = () => {
                       color={stringToColor(record.model_name)}
                       size='large'
                       onClick={(event) => {
-                        copyText(event, record.model_name).then((r) => {});
+                        copyText(event, record.model_name).then((r) => { });
                       }}
                     >
                       {t('请求并计费模型')} {record.model_name}{' '}
@@ -222,7 +244,7 @@ const LogsTable = () => {
                       size='large'
                       onClick={(event) => {
                         copyText(event, other.upstream_model_name).then(
-                          (r) => {},
+                          (r) => { },
                         );
                       }}
                     >
@@ -236,7 +258,7 @@ const LogsTable = () => {
                 color={stringToColor(record.model_name)}
                 size='large'
                 onClick={(event) => {
-                  copyText(event, record.model_name).then((r) => {});
+                  copyText(event, record.model_name).then((r) => { });
                 }}
                 suffixIcon={
                   <IconRefresh
@@ -596,7 +618,8 @@ const LogsTable = () => {
       dataIndex: 'content',
       render: (text, record, index) => {
         let other = getLogOther(record.other);
-        if (other == null || record.type !== 2) {
+        // aihubmax: 如果不是消费记录，或者是渠道为0且content不为空的消费记录，直接显示content
+        if (other == null || record.type !== 2 || (record.channel === 0 && text && text.trim() !== '')) { // aihubmax
           return (
             <Paragraph
               ellipsis={{
@@ -613,23 +636,42 @@ const LogsTable = () => {
           );
         }
 
+        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在或为0），则不显示计费过程
+        if (!record.prompt_tokens && !record.completion_tokens ||
+          (parseInt(record.prompt_tokens) === 0 && parseInt(record.completion_tokens) === 0)) { // aihubmax
+          return (
+            <Paragraph
+              ellipsis={{
+                rows: 2,
+                showTooltip: {
+                  type: 'popover',
+                  opts: { style: { width: 240 } },
+                },
+              }}
+              style={{ maxWidth: 240 }}
+            >
+              {text || t('无token信息')}
+            </Paragraph>
+          );
+        }
+
         let content = other?.claude
           ? renderClaudeModelPriceSimple(
-              other.model_ratio,
-              other.model_price,
-              other.group_ratio,
-              other.cache_tokens || 0,
-              other.cache_ratio || 1.0,
-              other.cache_creation_tokens || 0,
-              other.cache_creation_ratio || 1.0,
-            )
+            other.model_ratio,
+            other.model_price,
+            other.group_ratio,
+            other.cache_tokens || 0,
+            other.cache_ratio || 1.0,
+            other.cache_creation_tokens || 0,
+            other.cache_creation_ratio || 1.0,
+          )
           : renderModelPriceSimple(
-              other.model_ratio,
-              other.model_price,
-              other.group_ratio,
-              other.cache_tokens || 0,
-              other.cache_ratio || 1.0,
-            );
+            other.model_ratio,
+            other.model_price,
+            other.group_ratio,
+            other.cache_tokens || 0,
+            other.cache_ratio || 1.0,
+          );
         return (
           <Paragraph
             ellipsis={{
@@ -912,10 +954,18 @@ const LogsTable = () => {
         });
       }
       if (logs[i].type === 2) {
-        expandDataLocal.push({
-          key: t('日志详情'),
-          value: other?.claude
-            ? renderClaudeLogContent(
+        // aihubmax: 如果是消费记录且content不为空，则显示content内容，否则显示模型倍率信息
+        if (logs[i].content && logs[i].content.trim() !== '') { // aihubmax
+          expandDataLocal.push({
+            key: t('日志详情'),
+            value: logs[i].content,
+          });
+        } else if ((logs[i].prompt_tokens && parseInt(logs[i].prompt_tokens) > 0) ||
+          (logs[i].completion_tokens && parseInt(logs[i].completion_tokens) > 0)) { // aihubmax
+          expandDataLocal.push({
+            key: t('日志详情'),
+            value: other?.claude
+              ? renderClaudeLogContent(
                 other?.model_ratio,
                 other.completion_ratio,
                 other.model_price,
@@ -923,14 +973,15 @@ const LogsTable = () => {
                 other.cache_ratio || 1.0,
                 other.cache_creation_ratio || 1.0,
               )
-            : renderLogContent(
+              : renderLogContent(
                 other?.model_ratio,
                 other.completion_ratio,
                 other.model_price,
                 other.group_ratio,
                 other?.user_group_ratio,
               ),
-        });
+          });
+        } // aihubmax
       }
       if (logs[i].type === 2) {
         let modelMapped =
@@ -947,53 +998,57 @@ const LogsTable = () => {
             value: other.upstream_model_name,
           });
         }
-        let content = '';
-        if (other?.ws || other?.audio) {
-          content = renderAudioModelPrice(
-            other?.text_input,
-            other?.text_output,
-            other?.model_ratio,
-            other?.model_price,
-            other?.completion_ratio,
-            other?.audio_input,
-            other?.audio_output,
-            other?.audio_ratio,
-            other?.audio_completion_ratio,
-            other?.group_ratio,
-            other?.cache_tokens || 0,
-            other?.cache_ratio || 1.0,
-          );
-        } else if (other?.claude) {
-          content = renderClaudeModelPrice(
-            logs[i].prompt_tokens,
-            logs[i].completion_tokens,
-            other.model_ratio,
-            other.model_price,
-            other.completion_ratio,
-            other.group_ratio,
-            other.cache_tokens || 0,
-            other.cache_ratio || 1.0,
-            other.cache_creation_tokens || 0,
-            other.cache_creation_ratio || 1.0,
-          );
-        } else {
-          content = renderModelPrice(
-            logs[i].prompt_tokens,
-            logs[i].completion_tokens,
-            other?.model_ratio,
-            other?.model_price,
-            other?.completion_ratio,
-            other?.group_ratio,
-            other?.cache_tokens || 0,
-            other?.cache_ratio || 1.0,
-          other?.image || false,
+        // aihubmax: 如果没有token设置（prompt_tokens和completion_tokens都为0或不存在或为0），则不显示计费过程
+        if ((logs[i].prompt_tokens && parseInt(logs[i].prompt_tokens) > 0) ||
+          (logs[i].completion_tokens && parseInt(logs[i].completion_tokens) > 0)) { // aihubmax
+          let content = '';
+          if (other?.ws || other?.audio) {
+            content = renderAudioModelPrice(
+              other?.text_input,
+              other?.text_output,
+              other?.model_ratio,
+              other?.model_price,
+              other?.completion_ratio,
+              other?.audio_input,
+              other?.audio_output,
+              other?.audio_ratio,
+              other?.audio_completion_ratio,
+              other?.group_ratio,
+              other?.cache_tokens || 0,
+              other?.cache_ratio || 1.0,
+            );
+          } else if (other?.claude) {
+            content = renderClaudeModelPrice(
+              logs[i].prompt_tokens,
+              logs[i].completion_tokens,
+              other.model_ratio,
+              other.model_price,
+              other.completion_ratio,
+              other.group_ratio,
+              other.cache_tokens || 0,
+              other.cache_ratio || 1.0,
+              other.cache_creation_tokens || 0,
+              other.cache_creation_ratio || 1.0,
+            );
+          } else {
+            content = renderModelPrice(
+              logs[i].prompt_tokens,
+              logs[i].completion_tokens,
+              other?.model_ratio,
+              other?.model_price,
+              other?.completion_ratio,
+              other?.group_ratio,
+              other?.cache_tokens || 0,
+              other?.cache_ratio || 1.0,
+              other?.image || false,
               other?.image_ratio || 0,
               other?.image_output || 0,);
-        }
-        expandDataLocal.push({
-          key: t('计费过程'),
-          value: content,
-        });
+          }
+          expandDataLocal.push({
+            key: t('计费过程'),
+            value: content,
+          });
+        } // aihubmax
         if (other?.reasoning_effort) {
           expandDataLocal.push({
             key: t('Reasoning Effort'),
@@ -1037,7 +1092,7 @@ const LogsTable = () => {
 
   const handlePageChange = (page) => {
     setActivePage(page);
-    loadLogs(page, pageSize, logType).then((r) => {});
+    loadLogs(page, pageSize, logType).then((r) => { });
   };
 
   const handlePageSizeChange = async (size) => {

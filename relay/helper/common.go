@@ -17,6 +17,12 @@ func SetEventStreamHeaders(c *gin.Context) {
 	c.Writer.Header().Set("Connection", "keep-alive")
 	c.Writer.Header().Set("Transfer-Encoding", "chunked")
 	c.Writer.Header().Set("X-Accel-Buffering", "no")
+
+	// Aihubmax响应头加入渠道id
+	channelId := c.GetInt("channel_id")
+	if channelId > 0 {
+		c.Writer.Header().Set("x-channel-id", fmt.Sprintf("%d", channelId))
+	}
 }
 
 func ClaudeData(c *gin.Context, resp dto.ClaudeResponse) error {
