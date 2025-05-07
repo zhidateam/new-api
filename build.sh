@@ -30,3 +30,21 @@ echo "Building new-api Docker image..."
 docker build --cpu-period=100000 --cpu-quota=$(( 100000 * $use_cpus )) --cpu-shares=512 -t new-api:latest .
 
 echo "Build complete!"
+
+# 询问是否需要上传镜像到阿里云
+read -p "是否需要上传镜像到阿里云? (y/n): " upload_choice
+
+if [ "$upload_choice" = "y" ] || [ "$upload_choice" = "Y" ]; then
+    echo "正在查看当前镜像..."
+    docker images | grep new-api
+
+    echo "正在为镜像打标签..."
+    docker tag new-api:latest registry.cn-hangzhou.aliyuncs.com/zdteam/new-api:latest
+
+    echo "正在推送镜像到阿里云..."
+    docker push registry.cn-hangzhou.aliyuncs.com/zdteam/new-api:latest
+
+    echo "镜像上传完成!"
+else
+    echo "跳过镜像上传。"
+fi
