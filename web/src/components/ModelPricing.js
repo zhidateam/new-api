@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useMemo, useState } from 'react';
 import { API, copy, showError, showInfo, showSuccess } from '../helpers';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';//aihubmax
 
 import {
   Banner,
@@ -377,29 +376,31 @@ const ModelPricing = () => {
             })}
           />
         )}
-        <br/>
+        <br />
         {/* aihubmax begin */}
         <Banner
-            type="info"
-            fullMode={false}
-            description={<div>{t(`按量计费费用 = 分组倍率 × 模型倍率 × （提示token数 + 补全token数 × 补全倍率）/ 500000 （单位：美元，1美元=${usdToRmbPrice}元人民币）`)}</div>}
-            closeIcon="null"
+          type="info"
+          fullMode={false}
+          description={<div>{t(`按量计费费用 = 分组倍率 × 模型倍率 × （提示token数 + 补全token数 × 补全倍率）/ 500000 （单位：美元，1美元=${usdToRmbPrice}元人民币）`)}</div>}
+          closeIcon="null"
         />
-        <br/>
+        <br />
         <Banner
           type="info"
           fullMode={false}
           description={
             <span>
               {t('如果不知道怎么选择模型，可以参考 ')}
-              <Link to="/udocs/popular-models">{t('常用模型')}</Link>
+              <a href="/udocs/popular-models" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--semi-color-primary)', textDecoration: 'none' }}>
+                {t('常用模型')}
+              </a>
               {t(' 快速选择')}
             </span>
           }
           closeIcon="null"
         />
         {/* aihubmax end */}
-        <br/>
+        <br />
         <Space style={{ marginBottom: 16 }}>
           <Input
             placeholder={t('模糊搜索模型名称')}
