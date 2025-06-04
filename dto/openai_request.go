@@ -2,6 +2,7 @@ package dto
 
 import (
 	"encoding/json"
+	"one-api/common"
 	"strings"
 )
 
@@ -43,6 +44,7 @@ type GeneralOpenAIRequest struct {
 	ResponseFormat   *ResponseFormat   `json:"response_format,omitempty"`
 	EncodingFormat   any               `json:"encoding_format,omitempty"`
 	Seed             float64           `json:"seed,omitempty"`
+	ParallelTooCalls *bool             `json:"parallel_tool_calls,omitempty"`
 	Tools            []ToolCallRequest `json:"tools,omitempty"`
 	ToolChoice       any               `json:"tool_choice,omitempty"`
 	User             string            `json:"user,omitempty"`
@@ -51,7 +53,16 @@ type GeneralOpenAIRequest struct {
 	Dimensions       int               `json:"dimensions,omitempty"`
 	Modalities       any               `json:"modalities,omitempty"`
 	Audio            any               `json:"audio,omitempty"`
+	EnableThinking   any               `json:"enable_thinking,omitempty"` // ali
 	ExtraBody        any               `json:"extra_body,omitempty"`
+	WebSearchOptions *WebSearchOptions `json:"web_search_options,omitempty"`
+}
+
+func (r *GeneralOpenAIRequest) ToMap() map[string]any {
+	result := make(map[string]any)
+	data, _ := common.EncodeJson(r)
+	_ = common.DecodeJson(data, &result)
+	return result
 }
 
 type ToolCallRequest struct {
@@ -71,11 +82,11 @@ type StreamOptions struct {
 	IncludeUsage bool `json:"include_usage,omitempty"`
 }
 
-func (r GeneralOpenAIRequest) GetMaxTokens() int {
+func (r *GeneralOpenAIRequest) GetMaxTokens() int {
 	return int(r.MaxTokens)
 }
 
-func (r GeneralOpenAIRequest) ParseInput() []string {
+func (r *GeneralOpenAIRequest) ParseInput() []string {
 	if r.Input == nil {
 		return nil
 	}
@@ -113,6 +124,7 @@ type MediaContent struct {
 	ImageUrl   any    `json:"image_url,omitempty"`
 	InputAudio any    `json:"input_audio,omitempty"`
 	File       any    `json:"file,omitempty"`
+	VideoUrl   any    `json:"video_url,omitempty"`
 }
 
 func (m *MediaContent) GetImageMedia() *MessageImageUrl {
@@ -157,11 +169,16 @@ type MessageFile struct {
 	FileId   string `json:"file_id,omitempty"`
 }
 
+type MessageVideoUrl struct {
+	Url string `json:"url"`
+}
+
 const (
 	ContentTypeText       = "text"
 	ContentTypeImageURL   = "image_url"
 	ContentTypeInputAudio = "input_audio"
 	ContentTypeFile       = "file"
+	ContentTypeVideoUrl   = "video_url" // 阿里百炼视频识别
 )
 
 func (m *Message) GetPrefix() bool {
@@ -345,6 +362,15 @@ func (m *Message) ParseContent() []MediaContent {
 						}
 					}
 				}
+			case ContentTypeVideoUrl:
+				if videoUrl, ok := contentItem["video_url"].(string); ok {
+					contentList = append(contentList, MediaContent{
+						Type: ContentTypeVideoUrl,
+						VideoUrl: &MessageVideoUrl{
+							Url: videoUrl,
+						},
+					})
+				}
 			}
 		}
 	}
@@ -353,4 +379,55 @@ func (m *Message) ParseContent() []MediaContent {
 		m.parsedContent = contentList
 	}
 	return contentList
+}
+
+type WebSearchOptions struct {
+	SearchContextSize string          `json:"search_context_size,omitempty"`
+	UserLocation      json.RawMessage `json:"user_location,omitempty"`
+}
+
+type OpenAIResponsesRequest struct {
+	Model              string               `json:"model"`
+	Input              json.RawMessage      `json:"input,omitempty"`
+	Include            json.RawMessage      `json:"include,omitempty"`
+	Instructions       json.RawMessage      `json:"instructions,omitempty"`
+	MaxOutputTokens    uint                 `json:"max_output_tokens,omitempty"`
+	Metadata           json.RawMessage      `json:"metadata,omitempty"`
+	ParallelToolCalls  bool                 `json:"parallel_tool_calls,omitempty"`
+	PreviousResponseID string               `json:"previous_response_id,omitempty"`
+	Reasoning          *Reasoning           `json:"reasoning,omitempty"`
+	ServiceTier        string               `json:"service_tier,omitempty"`
+	Store              bool                 `json:"store,omitempty"`
+	Stream             bool                 `json:"stream,omitempty"`
+	Temperature        float64              `json:"temperature,omitempty"`
+	Text               json.RawMessage      `json:"text,omitempty"`
+	ToolChoice         json.RawMessage      `json:"tool_choice,omitempty"`
+	Tools              []ResponsesToolsCall `json:"tools,omitempty"`
+	TopP               float64              `json:"top_p,omitempty"`
+	Truncation         string               `json:"truncation,omitempty"`
+	User               string               `json:"user,omitempty"`
+}
+
+type Reasoning struct {
+	Effort  string `json:"effort,omitempty"`
+	Summary string `json:"summary,omitempty"`
+}
+
+type ResponsesToolsCall struct {
+	Type string `json:"type"`
+	// Web Search
+	UserLocation      json.RawMessage `json:"user_location,omitempty"`
+	SearchContextSize string          `json:"search_context_size,omitempty"`
+	// File Search
+	VectorStoreIds []string        `json:"vector_store_ids,omitempty"`
+	MaxNumResults  uint            `json:"max_num_results,omitempty"`
+	Filters        json.RawMessage `json:"filters,omitempty"`
+	// Computer Use
+	DisplayWidth  uint   `json:"display_width,omitempty"`
+	DisplayHeight uint   `json:"display_height,omitempty"`
+	Environment   string `json:"environment,omitempty"`
+	// Function
+	Name        string          `json:"name,omitempty"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters,omitempty"`
 }

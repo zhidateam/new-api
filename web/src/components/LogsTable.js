@@ -103,9 +103,15 @@ const LogsTable = () => {
             {t('系统')}
           </Tag>
         );
+      case 5:
+        return (
+          <Tag color='red' size='large'>
+            {t('错误')}
+          </Tag>
+        );
       default:
         return (
-          <Tag color='black' size='large'>
+          <Tag color='grey' size='large'>
             {t('未知')}
           </Tag>
         );
@@ -395,7 +401,7 @@ const LogsTable = () => {
       className: isAdmin() ? 'tableShow' : 'tableHiddle',
       render: (text, record, index) => {
         return isAdminUser ? (
-          record.type === 0 || record.type === 2 ? (
+          record.type === 0 || record.type === 2 || record.type === 5 ? (
             <div>
               {
                 <Tooltip content={record.channel_name || '[未知]'}>
@@ -448,7 +454,7 @@ const LogsTable = () => {
       title: t('令牌'),
       dataIndex: 'token_name',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <div>
             <Tag
               color='grey'
@@ -472,7 +478,7 @@ const LogsTable = () => {
       title: t('分组'),
       dataIndex: 'group',
       render: (text, record, index) => {
-        if (record.type === 0 || record.type === 2) {
+        if (record.type === 0 || record.type === 2 || record.type === 5) {
           if (record.group) {
             return <>{renderGroup(record.group)}</>;
           } else {
@@ -512,7 +518,7 @@ const LogsTable = () => {
       title: t('模型'),
       dataIndex: 'model_name',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <>{renderModelName(record)}</>
         ) : (
           <></>
@@ -552,7 +558,7 @@ const LogsTable = () => {
       title: t('提示'),
       dataIndex: 'prompt_tokens',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <>{<span> {text} </span>}</>
         ) : (
           <></>
@@ -565,7 +571,7 @@ const LogsTable = () => {
       dataIndex: 'completion_tokens',
       render: (text, record, index) => {
         return parseInt(text) > 0 &&
-          (record.type === 0 || record.type === 2) ? (
+          (record.type === 0 || record.type === 2 || record.type === 5) ? (
           <>{<span> {text} </span>}</>
         ) : (
           <></>
@@ -577,7 +583,7 @@ const LogsTable = () => {
       title: t('花费'),
       dataIndex: 'quota',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <>{renderQuota(text, 6)}</>
         ) : (
           <></>
@@ -979,6 +985,13 @@ const LogsTable = () => {
                 other.model_price,
                 other.group_ratio,
                 other?.user_group_ratio,
+                false,
+                1.0,
+                undefined,
+                other.web_search || false,
+                other.web_search_call_count || 0,
+                other.file_search || false,
+                other.file_search_call_count || 0,
               ),
           });
         } // aihubmax
@@ -1302,6 +1315,7 @@ const LogsTable = () => {
             <Select.Option value='2'>{t('消费')}</Select.Option>
             <Select.Option value='3'>{t('管理')}</Select.Option>
             <Select.Option value='4'>{t('系统')}</Select.Option>
+            <Select.Option value='5'>{t('错误')}</Select.Option>
           </Select>
           <Button
             theme='light'
