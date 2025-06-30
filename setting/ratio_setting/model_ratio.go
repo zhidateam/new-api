@@ -332,6 +332,8 @@ func GetModelPrice(name string, printErr bool) (float64, bool) {
 	modelPriceMapMutex.RLock()
 	defer modelPriceMapMutex.RUnlock()
 
+
+
 	if strings.HasPrefix(name, "gpt-4-gizmo") {
 		name = "gpt-4-gizmo-*"
 	}
